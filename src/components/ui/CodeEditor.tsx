@@ -1,7 +1,7 @@
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 
 interface CodeEditorProps {
   value: string;
@@ -173,6 +173,15 @@ export function CodeEditor({
         extensions={[
           markdown({ codeLanguages: languages }),
           EditorView.lineWrapping,
+          keymap.of([
+            {
+              key: 'Escape',
+              run: (view) => {
+                view.contentDOM.blur();
+                return true;
+              },
+            },
+          ]),
         ]}
         theme={darkTheme}
         basicSetup={{
