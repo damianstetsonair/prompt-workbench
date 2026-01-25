@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { MessageSquare, Sparkles, X, GripVertical, Save, FileText, Edit3 } from 'lucide-react';
-import { Button, MarkdownRenderer } from '../ui';
+import { Button, MarkdownRenderer, CodeEditor } from '../ui';
 
 interface PromptEditorProps {
   content: string;
@@ -31,10 +31,10 @@ export function PromptEditor({
   onGenerateFromDescription,
   onSaveVersion,
 }: PromptEditorProps) {
-  const promptRef = useRef<HTMLTextAreaElement>(null);
   const feedbackRef = useRef<HTMLTextAreaElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
 
   const [showGeneratePopup, setShowGeneratePopup] = useState(false);
   const [description, setDescription] = useState('');
@@ -55,11 +55,6 @@ export function PromptEditor({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState<string | null>(null);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0, width: 0, height: 0 });
-
-  // Auto-focus prompt textarea on mount
-  useEffect(() => {
-    promptRef.current?.focus();
-  }, []);
 
   // Close popups when prompt changes or when triggered externally
   useEffect(() => {
@@ -92,7 +87,7 @@ export function PromptEditor({
     if (showGeneratePopup) {
       descriptionRef.current?.focus();
       // Position popup at bottom-right of container (using fixed positioning)
-      const container = promptRef.current?.parentElement;
+      const container = editorContainerRef.current;
       if (container) {
         const rect = container.getBoundingClientRect();
         setPopupPos({
@@ -253,17 +248,11 @@ export function PromptEditor({
     }
   }, [isDragging, isResizing]);
 
-  const handlePromptKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab' && !e.shiftKey) {
-      e.preventDefault();
-      feedbackRef.current?.focus();
-    }
-  };
-
   const handleFeedbackKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab' && e.shiftKey) {
       e.preventDefault();
-      promptRef.current?.focus();
+      // Focus goes to CodeEditor which handles its own focus
+      setViewMode('edit');
     }
   };
 
@@ -279,14 +268,11 @@ export function PromptEditor({
 
   return (
     <div className="space-y-4">
-      <div className="relative">
+      <div className="relative" ref={editorContainerRef}>
         {/* View mode toggle */}
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-gray-800/90 rounded p-0.5">
           <button
-            onClick={() => {
-              setViewMode('edit');
-              setTimeout(() => promptRef.current?.focus(), 0);
-            }}
+            onClick={() => setViewMode('edit')}
             className={`p-1.5 rounded transition-colors ${
               viewMode === 'edit' 
                 ? 'bg-gray-700 text-white' 
@@ -310,24 +296,22 @@ export function PromptEditor({
         </div>
 
         {viewMode === 'edit' ? (
-          <textarea
-            ref={promptRef}
-            value={content}
-            onChange={(e) => onContentChange(e.target.value)}
-            onBlur={onContentBlur}
-            onKeyDown={handlePromptKeyDown}
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 pr-20 font-mono text-sm resize-none focus:outline-none focus:border-purple-500 focus:border-b-gray-600"
-            style={{ height: textareaHeight }}
-            placeholder="Escribe tu prompt aquí..."
-          />
+          <div className="rounded-b-none overflow-hidden">
+            <CodeEditor
+              value={content}
+              onChange={onContentChange}
+              onBlur={onContentBlur}
+              placeholder="Escribe tu prompt aquí..."
+              height={`${textareaHeight}px`}
+              autoFocus
+              className="rounded-b-none border-b-0"
+            />
+          </div>
         ) : (
           <div 
             className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 pr-20 overflow-auto cursor-pointer"
             style={{ height: textareaHeight }}
-            onClick={() => {
-              setViewMode('edit');
-              setTimeout(() => promptRef.current?.focus(), 0);
-            }}
+            onClick={() => setViewMode('edit')}
             title="Click para editar"
           >
             {content ? (

@@ -54,6 +54,7 @@ export function SettingsModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      onConfirm={handleSave}
       title="Settings"
       footer={
         <>

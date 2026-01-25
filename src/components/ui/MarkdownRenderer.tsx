@@ -12,24 +12,24 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-        // Custom styling for markdown elements
+        // Custom styling for markdown elements - compact spacing
         h1: ({ children }) => (
-          <h1 className="text-xl font-bold text-white mb-3 mt-4 first:mt-0">{children}</h1>
+          <h1 className="text-lg font-bold text-white mb-1.5 mt-2 first:mt-0">{children}</h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-lg font-semibold text-white mb-2 mt-3">{children}</h2>
+          <h2 className="text-base font-semibold text-white mb-1 mt-2 first:mt-0">{children}</h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-base font-semibold text-gray-200 mb-2 mt-3">{children}</h3>
+          <h3 className="text-sm font-semibold text-gray-200 mb-1 mt-1.5 first:mt-0">{children}</h3>
         ),
         p: ({ children }) => (
-          <p className="text-gray-300 mb-3 last:mb-0 leading-relaxed">{children}</p>
+          <p className="text-gray-300 mb-1.5 last:mb-0 leading-normal">{children}</p>
         ),
         ul: ({ children }) => (
-          <ul className="list-disc list-inside text-gray-300 mb-3 space-y-1">{children}</ul>
+          <ul className="list-disc list-inside text-gray-300 mb-1.5 space-y-0.5">{children}</ul>
         ),
         ol: ({ children }) => (
-          <ol className="list-decimal list-inside text-gray-300 mb-3 space-y-1">{children}</ol>
+          <ol className="list-decimal list-inside text-gray-300 mb-1.5 space-y-0.5">{children}</ol>
         ),
         li: ({ children }) => (
           <li className="text-gray-300">{children}</li>
@@ -38,22 +38,22 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           const isInline = !className;
           if (isInline) {
             return (
-              <code className="bg-gray-800 text-purple-300 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+              <code className="bg-gray-800 text-purple-300 px-1 py-0.5 rounded text-sm font-mono" {...props}>
                 {children}
               </code>
             );
           }
           return (
-            <code className={`block bg-gray-800 p-3 rounded-lg text-sm font-mono overflow-x-auto ${className}`} {...props}>
+            <code className={`block bg-gray-800 p-2 rounded text-sm font-mono overflow-x-auto ${className}`} {...props}>
               {children}
             </code>
           );
         },
         pre: ({ children }) => (
-          <pre className="bg-gray-800 rounded-lg p-3 mb-3 overflow-x-auto">{children}</pre>
+          <pre className="bg-gray-800 rounded p-2 mb-1.5 overflow-x-auto">{children}</pre>
         ),
         blockquote: ({ children }) => (
-          <blockquote className="border-l-4 border-purple-500 pl-4 py-1 my-3 text-gray-400 italic">
+          <blockquote className="border-l-2 border-purple-500 pl-2 py-0.5 my-1.5 text-gray-400 italic">
             {children}
           </blockquote>
         ),
@@ -68,7 +68,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           </a>
         ),
         table: ({ children }) => (
-          <div className="overflow-x-auto mb-3">
+          <div className="overflow-x-auto mb-1.5">
             <table className="min-w-full border border-gray-700 rounded">{children}</table>
           </div>
         ),
@@ -76,13 +76,13 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           <thead className="bg-gray-800">{children}</thead>
         ),
         th: ({ children }) => (
-          <th className="px-3 py-2 text-left text-gray-300 font-semibold border-b border-gray-700">{children}</th>
+          <th className="px-2 py-1 text-left text-gray-300 font-semibold border-b border-gray-700 text-sm">{children}</th>
         ),
         td: ({ children }) => (
-          <td className="px-3 py-2 text-gray-300 border-b border-gray-700">{children}</td>
+          <td className="px-2 py-1 text-gray-300 border-b border-gray-700 text-sm">{children}</td>
         ),
         hr: () => (
-          <hr className="border-gray-700 my-4" />
+          <hr className="border-gray-700 my-2" />
         ),
         strong: ({ children }) => (
           <strong className="text-white font-semibold">{children}</strong>

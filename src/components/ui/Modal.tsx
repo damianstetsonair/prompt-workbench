@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onConfirm?: () => void;
   title?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -19,19 +20,28 @@ const sizeStyles = {
 export function Modal({
   isOpen,
   onClose,
+  onConfirm,
   title,
   children,
   footer,
   size = 'md',
 }: ModalProps) {
-  // Close on escape key
+  // Handle keyboard events
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
       }
+      if (e.key === 'Enter' && onConfirm) {
+        // Don't trigger if user is typing in a textarea
+        const activeElement = document.activeElement;
+        if (activeElement?.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          onConfirm();
+        }
+      }
     },
-    [onClose]
+    [onClose, onConfirm]
   );
 
   useEffect(() => {

@@ -36,6 +36,7 @@ export function NewPromptModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
+      onConfirm={name.trim() && !isGenerating ? handleCreate : undefined}
       title="Nuevo Prompt"
       footer={
         <>
