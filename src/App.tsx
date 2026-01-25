@@ -242,6 +242,20 @@ export default function App() {
     }
   }, [feedback, currentVersion, testOutput, aiApi, workbench, selectedProject, selectedPrompt]);
 
+  const handleGenerateFromDescription = useCallback(async (description: string) => {
+    if (!description.trim() || !selectedProject || !selectedPrompt) return;
+
+    const generated = await aiApi.generatePrompt(description);
+    if (generated) {
+      workbench.updatePromptContent(
+        selectedProject,
+        selectedPrompt,
+        generated,
+        `Generado por ${currentProviderName}`
+      );
+    }
+  }, [aiApi, workbench, selectedProject, selectedPrompt, currentProviderName]);
+
   const handleRollbackVersion = useCallback((version: Version) => {
     if (!selectedProject || !selectedPrompt) return;
     workbench.rollbackToVersion(selectedProject, selectedPrompt, version);
@@ -364,10 +378,13 @@ export default function App() {
                   content={currentVersion.content}
                   feedback={feedback}
                   isGenerating={aiApi.isGenerating}
+                  promptId={selectedPrompt || undefined}
+                  closePopupTrigger={showSettingsModal}
                   onContentChange={handleContentChange}
                   onContentBlur={handleContentBlur}
                   onFeedbackChange={setFeedback}
                   onGenerateFromFeedback={handleGenerateFromFeedback}
+                  onGenerateFromDescription={handleGenerateFromDescription}
                 />
               )}
 
