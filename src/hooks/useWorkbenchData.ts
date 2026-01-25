@@ -418,6 +418,62 @@ export function useWorkbenchData() {
     [data, saveData]
   );
 
+  const deleteTestRun = useCallback(
+    (projectId: string, promptId: string, testRunId: string) => {
+      const project = data.projects[projectId];
+      const prompt = project?.prompts[promptId];
+      if (!project || !prompt) return;
+
+      const newData = {
+        ...data,
+        projects: {
+          ...data.projects,
+          [projectId]: {
+            ...project,
+            prompts: {
+              ...project.prompts,
+              [promptId]: {
+                ...prompt,
+                testRuns: prompt.testRuns.filter((run) => run.id !== testRunId),
+              },
+            },
+          },
+        },
+      };
+
+      saveData(newData);
+    },
+    [data, saveData]
+  );
+
+  const deleteAllTestRuns = useCallback(
+    (projectId: string, promptId: string) => {
+      const project = data.projects[projectId];
+      const prompt = project?.prompts[promptId];
+      if (!project || !prompt) return;
+
+      const newData = {
+        ...data,
+        projects: {
+          ...data.projects,
+          [projectId]: {
+            ...project,
+            prompts: {
+              ...project.prompts,
+              [promptId]: {
+                ...prompt,
+                testRuns: [],
+              },
+            },
+          },
+        },
+      };
+
+      saveData(newData);
+    },
+    [data, saveData]
+  );
+
   // ============================================
   // Import/Export
   // ============================================
@@ -552,6 +608,8 @@ export function useWorkbenchData() {
     deleteVersion,
     // Test runs
     addTestRun,
+    deleteTestRun,
+    deleteAllTestRuns,
     // Import/Export
     exportData,
     importData,

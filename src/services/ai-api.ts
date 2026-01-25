@@ -229,6 +229,18 @@ export const aiApi = {
   },
 
   /**
+   * Clean markdown code blocks from generated content
+   */
+  cleanMarkdownBlocks(text: string): string {
+    let cleaned = text.trim();
+    // Remove opening code block with optional language
+    cleaned = cleaned.replace(/^```[\w]*\n?/, '');
+    // Remove closing code block
+    cleaned = cleaned.replace(/\n?```$/, '');
+    return cleaned.trim();
+  },
+
+  /**
    * Generate a prompt from description
    */
   async generatePrompt(description: string, settings: Settings): Promise<string> {
@@ -246,7 +258,8 @@ Devuelve SOLO el prompt, sin explicaciones ni markdown. El prompt debe ser claro
       settings
     );
 
-    return typeof result === 'string' ? result : result.text;
+    const text = typeof result === 'string' ? result : result.text;
+    return this.cleanMarkdownBlocks(text);
   },
 
   /**
@@ -272,12 +285,13 @@ ${lastOutput ? `Último output generado:\n\`\`\`\n${lastOutput}\n\`\`\`\n` : ''}
 
 Feedback del usuario: ${feedback}
 
-Genera una versión mejorada del prompt incorporando el feedback. Devuelve SOLO el prompt mejorado, sin explicaciones.`,
+Genera una versión mejorada del prompt incorporando el feedback. Devuelve SOLO el prompt mejorado, sin explicaciones ni markdown.`,
         },
       ],
       settings
     );
 
-    return typeof result === 'string' ? result : result.text;
+    const text = typeof result === 'string' ? result : result.text;
+    return this.cleanMarkdownBlocks(text);
   },
 };

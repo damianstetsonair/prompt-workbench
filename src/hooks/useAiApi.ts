@@ -80,8 +80,10 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
       setApiError(null);
 
       try {
+        // Use a default message if no input provided
+        const messageContent = userInput.trim() || 'Ejecuta el prompt';
         const result = await aiApi.sendMessage(
-          [{ role: 'user', content: userInput }],
+          [{ role: 'user', content: messageContent }],
           settings,
           systemPrompt,
           true

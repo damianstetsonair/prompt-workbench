@@ -198,10 +198,10 @@ export default function App() {
   }, [workbench]);
 
   const handleExecutePrompt = useCallback(async () => {
-    if (!currentVersion?.content || !testInput.trim() || !selectedProject || !selectedPrompt) return;
+    if (!currentVersion?.content || !selectedProject || !selectedPrompt) return;
 
     const processedPrompt = replaceVariables(currentVersion.content, promptVariables);
-    const result = await aiApi.executePrompt(processedPrompt, testInput);
+    const result = await aiApi.executePrompt(processedPrompt, testInput || '');
 
     if (result) {
       setTestOutput(result.text);
@@ -414,6 +414,16 @@ export default function App() {
                   currentVersion={currentVersion}
                   onRollback={handleRollbackVersion}
                   onDeleteVersion={handleDeleteVersion}
+                  onDeleteTestRun={(runId) => {
+                    if (selectedProject && selectedPrompt) {
+                      workbench.deleteTestRun(selectedProject, selectedPrompt, runId);
+                    }
+                  }}
+                  onDeleteAllTestRuns={() => {
+                    if (selectedProject && selectedPrompt) {
+                      workbench.deleteAllTestRuns(selectedProject, selectedPrompt);
+                    }
+                  }}
                 />
               )}
             </div>
