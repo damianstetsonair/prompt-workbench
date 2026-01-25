@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Sparkles, Zap, Clock, Copy, Check } from 'lucide-react';
-import { Button } from '../ui';
+import { Play, Sparkles, Zap, Clock, Copy, Check, FileText, Code } from 'lucide-react';
+import { Button, MarkdownRenderer } from '../ui';
 import { VariablesPanel } from './VariablesPanel';
 import type { Metrics } from '../../types';
 
@@ -45,6 +45,7 @@ export function PromptTester({
   const [isResizingInput, setIsResizingInput] = useState(false);
   const [isResizingOutput, setIsResizingOutput] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showMarkdown, setShowMarkdown] = useState(true);
   const resizeStart = useRef({ y: 0, height: 0 });
 
   // Copy output to clipboard
@@ -128,6 +129,12 @@ export function PromptTester({
             <textarea
               value={testInput}
               onChange={(e) => onInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && !isExecuting) {
+                  e.preventDefault();
+                  onExecute();
+                }
+              }}
               className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 text-sm resize-none focus:outline-none focus:border-purple-500"
               style={{ height: inputHeight }}
               placeholder="Escribe el input para probar el prompt..."
@@ -142,16 +149,19 @@ export function PromptTester({
           </div>
         </div>
 
-        <Button
-          onClick={onExecute}
-          disabled={isExecuting}
-          loading={isExecuting}
-          icon={!isExecuting ? <Play className="w-4 h-4" /> : undefined}
-          variant="primary"
-          className="bg-green-600 hover:bg-green-700"
-        >
-          Ejecutar
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={onExecute}
+            disabled={isExecuting}
+            loading={isExecuting}
+            icon={!isExecuting ? <Play className="w-4 h-4" /> : undefined}
+            variant="primary"
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Ejecutar
+          </Button>
+          <span className="text-[10px] text-gray-500">⌘ + Enter</span>
+        </div>
       </div>
 
       {/* Right column - Output */}
@@ -177,32 +187,70 @@ export function PromptTester({
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium">Output</label>
-            {testOutput && (
-              <button
-                onClick={handleCopyOutput}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors"
-                title="Copiar output"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3 h-3 text-green-400" />
-                    <span className="text-green-400">Copiado</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span>Copiar</span>
-                  </>
-                )}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {/* Markdown toggle */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setShowMarkdown(false)}
+                  className={`p-1 rounded transition-colors ${
+                    !showMarkdown 
+                      ? 'bg-gray-700 text-white' 
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  title="Texto plano"
+                >
+                  <Code className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setShowMarkdown(true)}
+                  className={`p-1 rounded transition-colors ${
+                    showMarkdown 
+                      ? 'bg-gray-700 text-white' 
+                      : 'text-gray-500 hover:text-gray-300'
+                  }`}
+                  title="Markdown"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              {/* Copy button */}
+              {testOutput && (
+                <button
+                  onClick={handleCopyOutput}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors"
+                  title="Copiar output"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3 h-3 text-green-400" />
+                      <span className="text-green-400">Copiado</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
           <div className="relative">
             <div 
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 text-sm overflow-auto whitespace-pre-wrap"
+              className={`w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 text-sm overflow-auto ${
+                !showMarkdown ? 'whitespace-pre-wrap' : ''
+              }`}
               style={{ height: outputHeight }}
             >
-              {testOutput || <span className="text-gray-500">El output aparecerá aquí...</span>}
+              {testOutput ? (
+                showMarkdown ? (
+                  <MarkdownRenderer content={testOutput} />
+                ) : (
+                  testOutput
+                )
+              ) : (
+                <span className="text-gray-500">El output aparecerá aquí...</span>
+              )}
             </div>
             {/* Resize handle for output */}
             <div

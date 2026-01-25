@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { MessageSquare, Sparkles, X, GripVertical, Save } from 'lucide-react';
-import { Button } from '../ui';
+import { MessageSquare, Sparkles, X, GripVertical, Save, FileText, Edit3 } from 'lucide-react';
+import { Button, MarkdownRenderer } from '../ui';
 
 interface PromptEditorProps {
   content: string;
@@ -40,6 +40,7 @@ export function PromptEditor({
   const [description, setDescription] = useState('');
   const [showSavePopup, setShowSavePopup] = useState(false);
   const [versionNote, setVersionNote] = useState('');
+  const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
   
   // Textarea height state
   const [textareaHeight, setTextareaHeight] = useState(384); // 96 * 4 = 384px (h-96)
@@ -279,16 +280,63 @@ export function PromptEditor({
   return (
     <div className="space-y-4">
       <div className="relative">
-        <textarea
-          ref={promptRef}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          onBlur={onContentBlur}
-          onKeyDown={handlePromptKeyDown}
-          className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 font-mono text-sm resize-none focus:outline-none focus:border-purple-500 focus:border-b-gray-600"
-          style={{ height: textareaHeight }}
-          placeholder="Escribe tu prompt aquí..."
-        />
+        {/* View mode toggle */}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-gray-800/90 rounded p-0.5">
+          <button
+            onClick={() => {
+              setViewMode('edit');
+              setTimeout(() => promptRef.current?.focus(), 0);
+            }}
+            className={`p-1.5 rounded transition-colors ${
+              viewMode === 'edit' 
+                ? 'bg-gray-700 text-white' 
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+            title="Editar (Ctrl+Z para deshacer)"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setViewMode('preview')}
+            className={`p-1.5 rounded transition-colors ${
+              viewMode === 'preview' 
+                ? 'bg-gray-700 text-white' 
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+            title="Vista previa Markdown"
+          >
+            <FileText className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {viewMode === 'edit' ? (
+          <textarea
+            ref={promptRef}
+            value={content}
+            onChange={(e) => onContentChange(e.target.value)}
+            onBlur={onContentBlur}
+            onKeyDown={handlePromptKeyDown}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 pr-20 font-mono text-sm resize-none focus:outline-none focus:border-purple-500 focus:border-b-gray-600"
+            style={{ height: textareaHeight }}
+            placeholder="Escribe tu prompt aquí..."
+          />
+        ) : (
+          <div 
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 pr-20 overflow-auto cursor-pointer"
+            style={{ height: textareaHeight }}
+            onClick={() => {
+              setViewMode('edit');
+              setTimeout(() => promptRef.current?.focus(), 0);
+            }}
+            title="Click para editar"
+          >
+            {content ? (
+              <MarkdownRenderer content={content} />
+            ) : (
+              <span className="text-gray-500">Escribe tu prompt aquí...</span>
+            )}
+          </div>
+        )}
         
         {/* Resize handle for textarea */}
         <div
@@ -299,7 +347,7 @@ export function PromptEditor({
         </div>
 
         {/* Floating button when content is empty */}
-        {isContentEmpty && !showGeneratePopup && (
+        {isContentEmpty && !showGeneratePopup && viewMode === 'edit' && (
           <button
             onClick={() => setShowGeneratePopup(true)}
             className="absolute bottom-6 right-4 p-3 bg-purple-600 hover:bg-purple-500 rounded-full shadow-lg transition-all hover:scale-110 group"
