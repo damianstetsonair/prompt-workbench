@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { RefreshCw, Sparkles, X } from 'lucide-react';
+import JSZip from 'jszip';
 
 import { useWorkbenchData, useAiApi, useToast } from './hooks';
 import { extractVariables, replaceVariables, getVersionNumber } from './utils';
@@ -336,6 +337,46 @@ export default function App() {
     }));
   }, []);
 
+  const handleDownloadProject = useCallback(async (projectId: string) => {
+    const project = workbench.data.projects[projectId];
+    if (!project) return;
+
+    const zip = new JSZip();
+    const prompts = Object.values(project.prompts);
+
+    if (prompts.length === 0) {
+      showToast('No hay prompts para descargar');
+      return;
+    }
+
+    // Add each prompt's latest version as a .txt file
+    prompts.forEach((prompt) => {
+      const latestVersion = prompt.versions[prompt.versions.length - 1];
+      if (latestVersion) {
+        // Sanitize filename: remove special characters
+        const safeName = prompt.name.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s_-]/g, '').trim() || 'prompt';
+        zip.file(`${safeName}.txt`, latestVersion.content);
+      }
+    });
+
+    try {
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // Sanitize project name for filename
+      const safeProjectName = project.name.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s_-]/g, '').trim() || 'project';
+      link.download = `${safeProjectName}-prompts.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast(`Descargado ${prompts.length} prompt(s)`);
+    } catch {
+      showToast('Error al crear el ZIP');
+    }
+  }, [workbench.data.projects, showToast]);
+
   // Loading state
   if (workbench.loading) {
     return (
@@ -371,6 +412,7 @@ export default function App() {
         onExport={workbench.exportData}
         onImport={handleImport}
         onOpenSettings={() => setShowSettingsModal(true)}
+        onDownloadProject={handleDownloadProject}
       />
 
       {/* Main content */}

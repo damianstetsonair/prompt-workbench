@@ -35,6 +35,7 @@ interface SidebarProps {
   onExport: () => void;
   onImport: (file: File) => void;
   onOpenSettings: () => void;
+  onDownloadProject: (projectId: string) => void;
 }
 
 export function Sidebar({
@@ -57,6 +58,7 @@ export function Sidebar({
   onExport,
   onImport,
   onOpenSettings,
+  onDownloadProject,
 }: SidebarProps) {
   const [editingName, setEditingName] = useState<EditingState | null>(null);
   const [tempName, setTempName] = useState('');
@@ -170,24 +172,38 @@ export function Sidebar({
                 <span className="flex-1 text-sm truncate">{project.name}</span>
               )}
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStartEdit('project', project.id, project.name);
-                }}
-                className="opacity-0 group-hover:opacity-100 hover:text-blue-400"
-              >
-                <Edit3 className="w-3 h-3" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteProject(project.id);
-                }}
-                className="opacity-0 group-hover:opacity-100 hover:text-red-400"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
+              <div className="flex items-center gap-2.5 opacity-0 group-hover:opacity-100">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownloadProject(project.id);
+                  }}
+                  className="hover:text-green-400"
+                  title="Descargar prompts como ZIP"
+                >
+                  <Download className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStartEdit('project', project.id, project.name);
+                  }}
+                  className="hover:text-blue-400"
+                  title="Renombrar proyecto"
+                >
+                  <Edit3 className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteProject(project.id);
+                  }}
+                  className="hover:text-red-400"
+                  title="Eliminar proyecto"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             {/* Prompts list */}
