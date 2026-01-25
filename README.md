@@ -5,13 +5,18 @@ A tool for creating, testing, and iterating system prompts with multiple AI prov
 ## Features
 
 - **Project Management**: Organize your prompts into projects
-- **Automatic Versioning**: Every change creates a new version with full history
+- **Manual Versioning**: Save versions with optional comments (like Git commits)
 - **Integrated Testing**: Test your prompts directly with AI APIs
 - **Multi-Provider Support**: Works with Anthropic, OpenAI, and Google Gemini
 - **Dynamic Variables**: Use `{{variable}}` to create reusable prompts
 - **AI-Powered Generation**: Generate and improve prompts using feedback
-- **Visual Diff**: Compare versions side by side
+- **Visual Diff**: Compare versions side by side with accurate diff algorithm (jsdiff)
 - **Smart Import/Export**: Merge imports without losing existing data
+- **Download Project as ZIP**: Export all prompts from a project as `.txt` files
+- **Markdown Rendering**: Toggle between raw text and rendered markdown in output
+- **Resizable Panels**: Adjust editor, input, and output panel sizes by dragging
+- **Code Editor**: Full-featured editor with native undo/redo (word-by-word)
+- **Test History**: View, copy, and delete past test runs
 - **Metrics**: View tokens and response time
 
 ## Requirements
@@ -125,6 +130,16 @@ Always respond in {{language}}.
 
 Variables will automatically appear in the testing panel.
 
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + Enter` | Execute test (in Test tab) |
+| `Escape` | Exit prompt editor focus |
+| `Tab` | Cycle between prompt and feedback textareas |
+| `R` | Reset resized panels to default size |
+| `Enter` | Confirm modals (except delete confirmations) |
+
 ## Deploy to GitHub Pages
 
 1. Adjust the `base` in `vite.config.ts` to your repository name:
@@ -158,6 +173,10 @@ Use **Exportar** (Export) to backup your data.
 - [Vite](https://vite.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Lucide Icons](https://lucide.dev/)
+- [CodeMirror 6](https://codemirror.net/) - Code editor with markdown support
+- [jsdiff](https://github.com/kpdecker/jsdiff) - Text diff algorithm
+- [react-markdown](https://github.com/remarkjs/react-markdown) - Markdown rendering
+- [JSZip](https://stuk.github.io/jszip/) - ZIP file generation
 - [Anthropic API](https://docs.anthropic.com/)
 - [OpenAI API](https://platform.openai.com/docs/)
 - [Google Gemini API](https://ai.google.dev/docs)
