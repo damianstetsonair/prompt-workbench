@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { MessageSquare, Sparkles, X, GripVertical } from 'lucide-react';
+import { MessageSquare, Sparkles, X, GripVertical, Save } from 'lucide-react';
 import { Button } from '../ui';
 
 interface PromptEditorProps {
@@ -8,11 +8,13 @@ interface PromptEditorProps {
   isGenerating: boolean;
   promptId?: string;
   closePopupTrigger?: boolean;
+  hasUnsavedChanges?: boolean;
   onContentChange: (content: string) => void;
   onContentBlur: () => void;
   onFeedbackChange: (feedback: string) => void;
   onGenerateFromFeedback: () => void;
   onGenerateFromDescription: (description: string) => Promise<void>;
+  onSaveVersion: (note: string) => void;
 }
 
 export function PromptEditor({
@@ -21,11 +23,13 @@ export function PromptEditor({
   isGenerating,
   promptId,
   closePopupTrigger,
+  hasUnsavedChanges,
   onContentChange,
   onContentBlur,
   onFeedbackChange,
   onGenerateFromFeedback,
   onGenerateFromDescription,
+  onSaveVersion,
 }: PromptEditorProps) {
   const promptRef = useRef<HTMLTextAreaElement>(null);
   const feedbackRef = useRef<HTMLTextAreaElement>(null);
@@ -34,6 +38,8 @@ export function PromptEditor({
 
   const [showGeneratePopup, setShowGeneratePopup] = useState(false);
   const [description, setDescription] = useState('');
+  const [showSavePopup, setShowSavePopup] = useState(false);
+  const [versionNote, setVersionNote] = useState('');
   
   // Textarea height state
   const [textareaHeight, setTextareaHeight] = useState(384); // 96 * 4 = 384px (h-96)
@@ -54,10 +60,12 @@ export function PromptEditor({
     promptRef.current?.focus();
   }, []);
 
-  // Close popup when prompt changes or when triggered externally
+  // Close popups when prompt changes or when triggered externally
   useEffect(() => {
     setShowGeneratePopup(false);
     setDescription('');
+    setShowSavePopup(false);
+    setVersionNote('');
   }, [promptId, closePopupTrigger]);
 
   // Reset textarea sizes when pressing "r" outside of inputs
@@ -427,14 +435,83 @@ export function PromptEditor({
           </div>
         </div>
         <div className="flex items-center justify-between mt-2">
-          <Button
-            onClick={onGenerateFromFeedback}
-            disabled={isGenerating || !feedback.trim()}
-            loading={isGenerating}
-            icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
-          >
-            Generar nueva versión
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={onGenerateFromFeedback}
+              disabled={isGenerating || !feedback.trim()}
+              loading={isGenerating}
+              icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
+            >
+              Generar nueva versión
+            </Button>
+            <div className="relative">
+              <Button
+                onClick={() => setShowSavePopup(!showSavePopup)}
+                variant="secondary"
+                disabled={!hasUnsavedChanges}
+                icon={<Save className="w-4 h-4" />}
+              >
+                Guardar versión
+              </Button>
+              {showSavePopup && (
+                <div className="absolute bottom-full left-0 mb-2 w-72 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3 z-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Nota de versión</span>
+                    <button
+                      onClick={() => {
+                        setShowSavePopup(false);
+                        setVersionNote('');
+                      }}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={versionNote}
+                    onChange={(e) => setVersionNote(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onSaveVersion(versionNote || 'Guardado manual');
+                        setShowSavePopup(false);
+                        setVersionNote('');
+                      }
+                      if (e.key === 'Escape') {
+                        setShowSavePopup(false);
+                        setVersionNote('');
+                      }
+                    }}
+                    className="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500 mb-2"
+                    placeholder="Ej: Mejorado el tono (opcional)"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => {
+                        onSaveVersion(versionNote || 'Guardado manual');
+                        setShowSavePopup(false);
+                        setVersionNote('');
+                      }}
+                      size="sm"
+                    >
+                      Guardar
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowSavePopup(false);
+                        setVersionNote('');
+                      }}
+                      variant="ghost"
+                      size="sm"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           {(textareaHeight !== 384 || feedbackHeight !== 120) && (
             <span className="text-[10px] text-gray-500">
               pulsa R para restablecer tamaños

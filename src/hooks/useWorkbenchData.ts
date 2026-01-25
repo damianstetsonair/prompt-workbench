@@ -242,14 +242,16 @@ export function useWorkbenchData() {
       projectId: string,
       promptId: string,
       newContent: string,
-      note: string = 'Edición manual'
+      note: string = 'Edición manual',
+      forceNewVersion: boolean = false
     ) => {
       const project = data.projects[projectId];
       const prompt = project?.prompts[promptId];
       if (!project || !prompt) return;
 
       const currentVersion = prompt.versions[prompt.versions.length - 1];
-      if (currentVersion?.content === newContent) return;
+      // Skip if content is the same, unless forced
+      if (!forceNewVersion && currentVersion?.content === newContent) return;
 
       const newVersion: Version = {
         version: getVersionNumber(prompt.versions),

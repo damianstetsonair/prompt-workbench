@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { RefreshCw, Sparkles, X } from 'lucide-react';
 
 import { useWorkbenchData, useAiApi, useToast } from './hooks';
@@ -56,11 +56,17 @@ export default function App() {
 
   // Copy state
   const [copied, setCopied] = useState(false);
+  
+  // Track original content to detect unsaved changes
+  const [originalContent, setOriginalContent] = useState<string>('');
 
   // Derived data
   const currentProject = selectedProject ? workbench.data.projects[selectedProject] : null;
   const currentPrompt = currentProject && selectedPrompt ? currentProject.prompts[selectedPrompt] : null;
   const currentVersion = currentPrompt?.versions?.[currentPrompt.versions.length - 1];
+  
+  // Detect if there are unsaved changes
+  const hasUnsavedChanges = currentVersion?.content !== originalContent && originalContent !== '';
   
   // Get current provider name for display
   const currentProviderName = PROVIDERS.find(p => p.id === workbench.settings.provider)?.name || workbench.settings.provider;
@@ -79,6 +85,17 @@ export default function App() {
       }
     }
   });
+
+  // Track original content when prompt changes (to detect unsaved changes)
+  useEffect(() => {
+    if (currentVersion?.content) {
+      setOriginalContent(currentVersion.content);
+    } else {
+      setOriginalContent('');
+    }
+  // Only run when the prompt selection changes, not on every content edit
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPrompt, currentPrompt?.versions.length]);
 
   // ============================================
   // Handlers
@@ -196,6 +213,21 @@ export default function App() {
   const handleContentBlur = useCallback(() => {
     workbench.saveCurrentData();
   }, [workbench]);
+
+  const handleTabChange = useCallback((tab: ActiveTab) => {
+    // Save current data before switching tabs
+    workbench.saveCurrentData();
+    setActiveTab(tab);
+  }, [workbench]);
+
+  const handleSaveVersion = useCallback((note: string) => {
+    if (!selectedProject || !selectedPrompt || !currentVersion?.content) return;
+    // Force new version creation even if content matches (since we update in-place while editing)
+    workbench.updatePromptContent(selectedProject, selectedPrompt, currentVersion.content, note, true);
+    // Update original content to reflect the new saved version
+    setOriginalContent(currentVersion.content);
+    showToast('Versión guardada');
+  }, [workbench, selectedProject, selectedPrompt, currentVersion, showToast]);
 
   const handleExecutePrompt = useCallback(async () => {
     if (!currentVersion?.content || !selectedProject || !selectedPrompt) return;
@@ -353,7 +385,7 @@ export default function App() {
               copied={copied}
               onCopy={handleCopyToClipboard}
               onDelete={() => selectedProject && handleDeletePrompt(selectedProject, currentPrompt.id)}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
             />
 
             {/* Error Banner */}
@@ -380,11 +412,13 @@ export default function App() {
                   isGenerating={aiApi.isGenerating}
                   promptId={selectedPrompt || undefined}
                   closePopupTrigger={showSettingsModal}
+                  hasUnsavedChanges={hasUnsavedChanges}
                   onContentChange={handleContentChange}
                   onContentBlur={handleContentBlur}
                   onFeedbackChange={setFeedback}
                   onGenerateFromFeedback={handleGenerateFromFeedback}
                   onGenerateFromDescription={handleGenerateFromDescription}
+                  onSaveVersion={handleSaveVersion}
                 />
               )}
 
