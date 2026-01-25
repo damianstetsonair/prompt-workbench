@@ -1,9 +1,17 @@
-import { useState, useCallback, useEffect } from 'react';
 import { RefreshCw, Sparkles, X } from 'lucide-react';
-import JSZip from 'jszip';
 
-import { useWorkbenchData, useAiApi, useToast } from './hooks';
-import { extractVariables, replaceVariables, getVersionNumber } from './utils';
+import {
+  useWorkbenchData,
+  useAiApi,
+  useToast,
+  useProjectSelection,
+  useModals,
+  usePromptTesting,
+  usePromptEditor,
+  useClipboard,
+  useProjectActions,
+} from './hooks';
+import { extractVariables, getVersionNumber } from './utils';
 import { PROVIDERS } from './constants';
 
 import {
@@ -18,364 +26,68 @@ import {
   PromptHistory,
 } from './components';
 
-import type { ActiveTab, ConfirmModalState, Metrics, Version } from './types';
-
-const INITIAL_CONFIRM_STATE: ConfirmModalState = {
-  show: false,
-  type: null,
-  id: null,
-  projectId: null,
-  name: '',
-};
-
 export default function App() {
-  // Data hooks
+  // Core data hook
   const workbench = useWorkbenchData();
+  
+  // Toast notifications
+  const { toast, showToast } = useToast();
+
+  // AI API hook
   const aiApi = useAiApi({
     settings: workbench.settings,
     onSettingsChange: workbench.saveSettings,
   });
-  const { toast, showToast } = useToast();
 
-  // UI State
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
-  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab] = useState<ActiveTab>('edit');
-
-  // Modal states
-  const [showNewPromptModal, setShowNewPromptModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [confirmModal, setConfirmModal] = useState<ConfirmModalState>(INITIAL_CONFIRM_STATE);
-
-  // Test states
-  const [testInput, setTestInput] = useState('');
-  const [testOutput, setTestOutput] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [promptVariables, setPromptVariables] = useState<Record<string, string>>({});
-  const [metrics, setMetrics] = useState<Metrics>({ inputTokens: 0, outputTokens: 0, responseTime: 0 });
-
-  // Copy state
-  const [copied, setCopied] = useState(false);
-  
-  // Track original content to detect unsaved changes
-  const [originalContent, setOriginalContent] = useState<string>('');
-
-  // Derived data
-  const currentProject = selectedProject ? workbench.data.projects[selectedProject] : null;
-  const currentPrompt = currentProject && selectedPrompt ? currentProject.prompts[selectedPrompt] : null;
-  const currentVersion = currentPrompt?.versions?.[currentPrompt.versions.length - 1];
-  
-  // Detect if there are unsaved changes
-  const hasUnsavedChanges = currentVersion?.content !== originalContent && originalContent !== '';
-  
-  // Get current provider name for display
+  // Get current provider info
   const currentProviderName = PROVIDERS.find(p => p.id === workbench.settings.provider)?.name || workbench.settings.provider;
   const currentApiKey = workbench.settings.providers[workbench.settings.provider].apiKey;
 
-  // Auto-select first project on initial load
-  useState(() => {
-    if (!workbench.loading) {
-      const projectIds = Object.keys(workbench.data.projects);
-      if (projectIds.length > 0 && !selectedProject) {
-        const firstId = projectIds[0];
-        if (firstId) {
-          setSelectedProject(firstId);
-          setExpandedProjects({ [firstId]: true });
-        }
-      }
-    }
+  // Project selection state
+  const selection = useProjectSelection({ data: workbench.data });
+
+  // Modal state
+  const modals = useModals();
+
+  // Clipboard functionality
+  const clipboard = useClipboard({ showToast });
+
+  // Prompt testing
+  const testing = usePromptTesting({
+    executePrompt: aiApi.executePrompt,
+    addTestRun: workbench.addTestRun,
   });
 
-  // Track original content when prompt changes (to detect unsaved changes)
-  useEffect(() => {
-    if (currentVersion?.content) {
-      setOriginalContent(currentVersion.content);
-    } else {
-      setOriginalContent('');
-    }
-  // Only run when the prompt selection changes, not on every content edit
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPrompt, currentPrompt?.versions.length]);
+  // Prompt editor
+  const editor = usePromptEditor({
+    currentVersion: selection.currentVersion,
+    selectedPrompt: selection.selectedPrompt,
+    versionsLength: selection.currentPrompt?.versions.length || 0,
+    updateCurrentVersionContent: workbench.updateCurrentVersionContent,
+    updatePromptContent: workbench.updatePromptContent,
+    saveCurrentData: workbench.saveCurrentData,
+    improvePrompt: aiApi.improvePrompt,
+    generatePrompt: aiApi.generatePrompt,
+    showToast,
+    currentProviderName,
+  });
 
-  // ============================================
-  // Handlers
-  // ============================================
-
-  const handleCopyToClipboard = useCallback(async () => {
-    if (!currentVersion?.content) return;
-    try {
-      await navigator.clipboard.writeText(currentVersion.content);
-      setCopied(true);
-      showToast('¡Prompt copiado al portapapeles!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      showToast('Error al copiar');
-    }
-  }, [currentVersion, showToast]);
-
-  const handleCreateProject = useCallback(() => {
-    const id = workbench.createProject();
-    setSelectedProject(id);
-    setSelectedPrompt(null);
-    setExpandedProjects((prev) => ({ ...prev, [id]: true }));
-  }, [workbench]);
-
-  const handleDeleteProject = useCallback((projectId: string) => {
-    const project = workbench.data.projects[projectId];
-    setConfirmModal({
-      show: true,
-      type: 'project',
-      id: projectId,
-      projectId: null,
-      name: project?.name || 'este proyecto',
-    });
-  }, [workbench.data.projects]);
-
-  const handleDeletePrompt = useCallback((projectId: string, promptId: string) => {
-    const prompt = workbench.data.projects[projectId]?.prompts[promptId];
-    setConfirmModal({
-      show: true,
-      type: 'prompt',
-      id: promptId,
-      projectId: projectId,
-      name: prompt?.name || 'este prompt',
-    });
-  }, [workbench.data.projects]);
-
-  const handleDeleteVersion = useCallback((version: Version) => {
-    if (!selectedProject || !selectedPrompt) return;
-    setConfirmModal({
-      show: true,
-      type: 'version',
-      id: version.version,
-      projectId: selectedProject,
-      promptId: selectedPrompt,
-      name: `v${version.version}`,
-    });
-  }, [selectedProject, selectedPrompt]);
-
-  const handleConfirmDelete = useCallback(() => {
-    if (confirmModal.type === 'project' && confirmModal.id) {
-      workbench.deleteProject(confirmModal.id);
-      if (selectedProject === confirmModal.id) {
-        setSelectedProject(null);
-        setSelectedPrompt(null);
-      }
-    } else if (confirmModal.type === 'prompt' && confirmModal.projectId && confirmModal.id) {
-      workbench.deletePrompt(confirmModal.projectId, confirmModal.id);
-      if (selectedPrompt === confirmModal.id) {
-        setSelectedPrompt(null);
-      }
-    } else if (confirmModal.type === 'version' && confirmModal.projectId && confirmModal.promptId && confirmModal.id) {
-      workbench.deleteVersion(confirmModal.projectId, confirmModal.promptId, confirmModal.id);
-    }
-    setConfirmModal(INITIAL_CONFIRM_STATE);
-  }, [confirmModal, workbench, selectedProject, selectedPrompt]);
-
-  const handleNewPrompt = useCallback(async (name: string, description: string) => {
-    if (!selectedProject) return;
-
-    let initialContent = `# ${name}\n\n[Describe el comportamiento del sistema aquí]`;
-
-    if (description.trim()) {
-      const generated = await aiApi.generatePrompt(description);
-      if (generated) {
-        initialContent = generated;
-      }
-    }
-
-    const promptId = workbench.createPrompt(
-      selectedProject,
-      name,
-      initialContent,
-      description ? `Generado por ${currentProviderName}` : 'Inicial'
-    );
-
-    if (promptId) {
-      setSelectedPrompt(promptId);
-      setActiveTab('edit');
-      setShowNewPromptModal(false);
-    }
-  }, [selectedProject, aiApi, workbench, currentProviderName]);
-
-  const handleMovePrompt = useCallback((promptId: string, sourceProjectId: string, targetProjectId: string) => {
-    workbench.movePromptToProject(promptId, sourceProjectId, targetProjectId);
-    if (selectedPrompt === promptId) {
-      setSelectedProject(targetProjectId);
-    }
-  }, [workbench, selectedPrompt]);
-
-  const handleContentChange = useCallback((content: string) => {
-    if (!selectedProject || !selectedPrompt) return;
-    workbench.updateCurrentVersionContent(selectedProject, selectedPrompt, content);
-  }, [workbench, selectedProject, selectedPrompt]);
-
-  const handleContentBlur = useCallback(() => {
-    workbench.saveCurrentData();
-  }, [workbench]);
-
-  const handleTabChange = useCallback((tab: ActiveTab) => {
-    // Save current data before switching tabs
-    workbench.saveCurrentData();
-    setActiveTab(tab);
-  }, [workbench]);
-
-  const handleSaveVersion = useCallback((note: string) => {
-    if (!selectedProject || !selectedPrompt || !currentVersion?.content) return;
-    // Force new version creation even if content matches (since we update in-place while editing)
-    workbench.updatePromptContent(selectedProject, selectedPrompt, currentVersion.content, note, true);
-    // Update original content to reflect the new saved version
-    setOriginalContent(currentVersion.content);
-    showToast('Versión guardada');
-  }, [workbench, selectedProject, selectedPrompt, currentVersion, showToast]);
-
-  const handleExecutePrompt = useCallback(async () => {
-    if (!currentVersion?.content || !selectedProject || !selectedPrompt) return;
-
-    const processedPrompt = replaceVariables(currentVersion.content, promptVariables);
-    const result = await aiApi.executePrompt(processedPrompt, testInput || '');
-
-    if (result) {
-      setTestOutput(result.text);
-      setMetrics({
-        inputTokens: result.inputTokens,
-        outputTokens: result.outputTokens,
-        responseTime: result.responseTime,
-      });
-
-      workbench.addTestRun(selectedProject, selectedPrompt, {
-        input: testInput,
-        output: result.text,
-        promptVersion: currentVersion.version,
-        timestamp: Date.now(),
-        variables: { ...promptVariables },
-        metrics: {
-          inputTokens: result.inputTokens,
-          outputTokens: result.outputTokens,
-          responseTime: result.responseTime,
-        },
-      });
-    }
-  }, [currentVersion, testInput, promptVariables, aiApi, workbench, selectedProject, selectedPrompt]);
-
-  const handleGenerateFromFeedback = useCallback(async () => {
-    if (!feedback.trim() || !currentVersion?.content || !selectedProject || !selectedPrompt) return;
-
-    const newContent = await aiApi.improvePrompt(currentVersion.content, feedback, testOutput || null);
-
-    if (newContent) {
-      workbench.updatePromptContent(
-        selectedProject,
-        selectedPrompt,
-        newContent,
-        `Feedback: ${feedback.substring(0, 50)}...`
-      );
-      setFeedback('');
-    }
-  }, [feedback, currentVersion, testOutput, aiApi, workbench, selectedProject, selectedPrompt]);
-
-  const handleGenerateFromDescription = useCallback(async (description: string) => {
-    if (!description.trim() || !selectedProject || !selectedPrompt) return;
-
-    const generated = await aiApi.generatePrompt(description);
-    if (generated) {
-      workbench.updatePromptContent(
-        selectedProject,
-        selectedPrompt,
-        generated,
-        `Generado por ${currentProviderName}`
-      );
-    }
-  }, [aiApi, workbench, selectedProject, selectedPrompt, currentProviderName]);
-
-  const handleRollbackVersion = useCallback((version: Version) => {
-    if (!selectedProject || !selectedPrompt) return;
-    workbench.rollbackToVersion(selectedProject, selectedPrompt, version);
-  }, [workbench, selectedProject, selectedPrompt]);
-
-  const handleImport = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result;
-      if (typeof result === 'string') {
-        const importResult = workbench.importData(result);
-        if (importResult.success) {
-          const messages: string[] = [];
-          if (importResult.added > 0) {
-            messages.push(`${importResult.added} proyecto(s) añadido(s)`);
-          }
-          if (importResult.updated > 0) {
-            messages.push(`${importResult.updated} proyecto(s) actualizado(s)`);
-          }
-          if (messages.length === 0) {
-            showToast('No hay cambios nuevos para importar');
-          } else {
-            showToast(`Importación exitosa: ${messages.join(', ')}`);
-          }
-        } else {
-          showToast('Error al importar: archivo inválido');
-        }
-      }
-    };
-    reader.readAsText(file);
-  }, [workbench, showToast]);
-
-  const handleSelectProject = useCallback((projectId: string) => {
-    setSelectedProject(projectId);
-  }, []);
-
-  const handleSelectPrompt = useCallback((promptId: string) => {
-    setSelectedPrompt(promptId);
-    setActiveTab('edit');
-  }, []);
-
-  const handleToggleProject = useCallback((projectId: string) => {
-    setExpandedProjects((prev) => ({
-      ...prev,
-      [projectId]: !prev[projectId],
-    }));
-  }, []);
-
-  const handleDownloadProject = useCallback(async (projectId: string) => {
-    const project = workbench.data.projects[projectId];
-    if (!project) return;
-
-    const zip = new JSZip();
-    const prompts = Object.values(project.prompts);
-
-    if (prompts.length === 0) {
-      showToast('No hay prompts para descargar');
-      return;
-    }
-
-    // Add each prompt's latest version as a .txt file
-    prompts.forEach((prompt) => {
-      const latestVersion = prompt.versions[prompt.versions.length - 1];
-      if (latestVersion) {
-        // Sanitize filename: remove special characters
-        const safeName = prompt.name.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s_-]/g, '').trim() || 'prompt';
-        zip.file(`${safeName}.txt`, latestVersion.content);
-      }
-    });
-
-    try {
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      // Sanitize project name for filename
-      const safeProjectName = project.name.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s_-]/g, '').trim() || 'project';
-      link.download = `${safeProjectName}-prompts.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      showToast(`Descargado ${prompts.length} prompt(s)`);
-    } catch {
-      showToast('Error al crear el ZIP');
-    }
-  }, [workbench.data.projects, showToast]);
+  // Project actions
+  const actions = useProjectActions({
+    data: workbench.data,
+    createProject: workbench.createProject,
+    deleteProject: workbench.deleteProject,
+    deletePrompt: workbench.deletePrompt,
+    deleteVersion: workbench.deleteVersion,
+    createPrompt: workbench.createPrompt,
+    movePromptToProject: workbench.movePromptToProject,
+    rollbackToVersion: workbench.rollbackToVersion,
+    importData: workbench.importData,
+    exportData: workbench.exportData,
+    showToast,
+    generatePrompt: aiApi.generatePrompt,
+    currentProviderName,
+  });
 
   // Loading state
   if (workbench.loading) {
@@ -391,43 +103,56 @@ export default function App() {
       {/* Sidebar */}
       <Sidebar
         data={workbench.data}
-        selectedProject={selectedProject}
-        selectedPrompt={selectedPrompt}
-        expandedProjects={expandedProjects}
+        selectedProject={selection.selectedProject}
+        selectedPrompt={selection.selectedPrompt}
+        expandedProjects={selection.expandedProjects}
         saving={workbench.saving}
         hasApiKey={!!currentApiKey}
-        onSelectProject={handleSelectProject}
-        onSelectPrompt={handleSelectPrompt}
-        onToggleProject={handleToggleProject}
-        onCreateProject={handleCreateProject}
-        onDeleteProject={handleDeleteProject}
+        onSelectProject={selection.handleSelectProject}
+        onSelectPrompt={selection.handleSelectPrompt}
+        onToggleProject={selection.handleToggleProject}
+        onCreateProject={() => actions.handleCreateProject(selection.selectNewProject)}
+        onDeleteProject={(projectId) => {
+          const project = workbench.data.projects[projectId];
+          modals.openDeleteProjectModal(projectId, project?.name || '');
+        }}
         onRenameProject={workbench.renameProject}
-        onDeletePrompt={handleDeletePrompt}
+        onDeletePrompt={(projectId, promptId) => {
+          const prompt = workbench.data.projects[projectId]?.prompts[promptId];
+          modals.openDeletePromptModal(projectId, promptId, prompt?.name || '');
+        }}
         onRenamePrompt={workbench.renamePrompt}
         onNewPrompt={(projectId) => {
-          setSelectedProject(projectId);
-          setShowNewPromptModal(true);
+          selection.handleSelectProject(projectId);
+          modals.openNewPromptModal();
         }}
-        onMovePrompt={handleMovePrompt}
-        onExport={workbench.exportData}
-        onImport={handleImport}
-        onOpenSettings={() => setShowSettingsModal(true)}
-        onDownloadProject={handleDownloadProject}
+        onMovePrompt={(promptId, sourceProjectId, targetProjectId) => {
+          actions.handleMovePrompt(promptId, sourceProjectId, targetProjectId, selection.updateProjectAfterMove);
+        }}
+        onExport={actions.exportData}
+        onImport={actions.handleImport}
+        onOpenSettings={modals.openSettingsModal}
+        onDownloadProject={actions.handleDownloadProject}
       />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {currentPrompt && currentVersion ? (
+        {selection.currentPrompt && selection.currentVersion ? (
           <>
             {/* Header */}
             <Header
-              prompt={currentPrompt}
-              currentVersion={currentVersion}
-              activeTab={activeTab}
-              copied={copied}
-              onCopy={handleCopyToClipboard}
-              onDelete={() => selectedProject && handleDeletePrompt(selectedProject, currentPrompt.id)}
-              onTabChange={handleTabChange}
+              prompt={selection.currentPrompt}
+              currentVersion={selection.currentVersion}
+              activeTab={selection.activeTab}
+              copied={clipboard.copied}
+              onCopy={() => clipboard.copyToClipboard(selection.currentVersion?.content)}
+              onDelete={() => {
+                if (selection.selectedProject) {
+                  const prompt = selection.currentPrompt;
+                  modals.openDeletePromptModal(selection.selectedProject, prompt!.id, prompt?.name || '');
+                }
+              }}
+              onTabChange={(tab) => selection.handleTabChange(tab, workbench.saveCurrentData)}
             />
 
             {/* Error Banner */}
@@ -447,57 +172,61 @@ export default function App() {
 
             {/* Content area */}
             <div className="flex-1 overflow-auto p-4">
-              {activeTab === 'edit' && (
+              {selection.activeTab === 'edit' && (
                 <PromptEditor
-                  content={currentVersion.content}
-                  feedback={feedback}
+                  content={selection.currentVersion.content}
+                  feedback={editor.feedback}
                   isGenerating={aiApi.isGenerating}
-                  promptId={selectedPrompt || undefined}
-                  closePopupTrigger={showSettingsModal}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  onContentChange={handleContentChange}
-                  onContentBlur={handleContentBlur}
-                  onFeedbackChange={setFeedback}
-                  onGenerateFromFeedback={handleGenerateFromFeedback}
-                  onGenerateFromDescription={handleGenerateFromDescription}
-                  onSaveVersion={handleSaveVersion}
+                  promptId={selection.selectedPrompt || undefined}
+                  closePopupTrigger={modals.showSettingsModal}
+                  hasUnsavedChanges={editor.hasUnsavedChanges}
+                  onContentChange={(content) => editor.handleContentChange(content, selection.selectedProject, selection.selectedPrompt)}
+                  onContentBlur={editor.handleContentBlur}
+                  onFeedbackChange={editor.setFeedback}
+                  onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testOutput)}
+                  onGenerateFromDescription={(desc) => editor.handleGenerateFromDescription(desc, selection.selectedProject, selection.selectedPrompt)}
+                  onSaveVersion={(note) => editor.handleSaveVersion(note, selection.selectedProject, selection.selectedPrompt)}
                 />
               )}
 
-              {activeTab === 'test' && (
+              {selection.activeTab === 'test' && (
                 <PromptTester
-                  testInput={testInput}
-                  testOutput={testOutput}
-                  feedback={feedback}
-                  variables={extractVariables(currentVersion.content)}
-                  variableValues={promptVariables}
-                  metrics={metrics}
+                  testInput={testing.testInput}
+                  testOutput={testing.testOutput}
+                  feedback={editor.feedback}
+                  variables={extractVariables(selection.currentVersion.content)}
+                  variableValues={testing.promptVariables}
+                  metrics={testing.metrics}
                   isExecuting={aiApi.isExecuting}
                   isGenerating={aiApi.isGenerating}
-                  nextVersion={getVersionNumber(currentPrompt.versions)}
-                  onInputChange={setTestInput}
-                  onFeedbackChange={setFeedback}
-                  onVariablesChange={setPromptVariables}
-                  onExecute={handleExecutePrompt}
-                  onGenerateFromFeedback={handleGenerateFromFeedback}
+                  nextVersion={getVersionNumber(selection.currentPrompt.versions)}
+                  onInputChange={testing.setTestInput}
+                  onFeedbackChange={editor.setFeedback}
+                  onVariablesChange={testing.setPromptVariables}
+                  onExecute={() => testing.handleExecutePrompt(selection.currentVersion, selection.selectedProject, selection.selectedPrompt)}
+                  onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testOutput)}
                 />
               )}
 
-              {activeTab === 'history' && (
+              {selection.activeTab === 'history' && (
                 <PromptHistory
-                  versions={currentPrompt.versions}
-                  testRuns={currentPrompt.testRuns}
-                  currentVersion={currentVersion}
-                  onRollback={handleRollbackVersion}
-                  onDeleteVersion={handleDeleteVersion}
+                  versions={selection.currentPrompt.versions}
+                  testRuns={selection.currentPrompt.testRuns}
+                  currentVersion={selection.currentVersion}
+                  onRollback={(version) => actions.handleRollbackVersion(version, selection.selectedProject, selection.selectedPrompt)}
+                  onDeleteVersion={(version) => {
+                    if (selection.selectedProject && selection.selectedPrompt) {
+                      modals.openDeleteVersionModal(selection.selectedProject, selection.selectedPrompt, version);
+                    }
+                  }}
                   onDeleteTestRun={(runId) => {
-                    if (selectedProject && selectedPrompt) {
-                      workbench.deleteTestRun(selectedProject, selectedPrompt, runId);
+                    if (selection.selectedProject && selection.selectedPrompt) {
+                      workbench.deleteTestRun(selection.selectedProject, selection.selectedPrompt, runId);
                     }
                   }}
                   onDeleteAllTestRuns={() => {
-                    if (selectedProject && selectedPrompt) {
-                      workbench.deleteAllTestRuns(selectedProject, selectedPrompt);
+                    if (selection.selectedProject && selection.selectedPrompt) {
+                      workbench.deleteAllTestRuns(selection.selectedProject, selection.selectedPrompt);
                     }
                   }}
                 />
@@ -516,15 +245,20 @@ export default function App() {
 
       {/* Modals */}
       <NewPromptModal
-        isOpen={showNewPromptModal}
-        onClose={() => setShowNewPromptModal(false)}
-        onCreate={handleNewPrompt}
+        isOpen={modals.showNewPromptModal}
+        onClose={modals.closeNewPromptModal}
+        onCreate={(name, description) => {
+          actions.handleNewPrompt(name, description, selection.selectedProject, (promptId) => {
+            selection.selectNewPrompt(promptId);
+            modals.closeNewPromptModal();
+          });
+        }}
         isGenerating={aiApi.isGenerating}
       />
 
       <SettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
+        isOpen={modals.showSettingsModal}
+        onClose={modals.closeSettingsModal}
         settings={workbench.settings}
         onSettingsChange={workbench.saveSettings}
         onSave={() => aiApi.setApiError(null)}
@@ -535,9 +269,18 @@ export default function App() {
       />
 
       <ConfirmModal
-        state={confirmModal}
-        onClose={() => setConfirmModal(INITIAL_CONFIRM_STATE)}
-        onConfirm={handleConfirmDelete}
+        state={modals.confirmModal}
+        onClose={modals.closeConfirmModal}
+        onConfirm={() => {
+          actions.handleConfirmDelete(
+            modals.confirmModal,
+            selection.selectedProject,
+            selection.selectedPrompt,
+            selection.clearProjectSelection,
+            selection.clearPromptSelection
+          );
+          modals.closeConfirmModal();
+        }}
       />
 
       {/* Toast */}

@@ -1,0 +1,125 @@
+import { useState, useCallback, useEffect } from 'react';
+import type { Version } from '../types';
+
+interface UsePromptEditorProps {
+  currentVersion: Version | undefined;
+  selectedPrompt: string | null;
+  versionsLength: number;
+  updateCurrentVersionContent: (projectId: string, promptId: string, content: string) => void;
+  updatePromptContent: (projectId: string, promptId: string, content: string, note: string, forceNewVersion: boolean) => void;
+  saveCurrentData: () => void;
+  improvePrompt: (content: string, feedback: string, lastOutput: string | null) => Promise<string | null>;
+  generatePrompt: (description: string) => Promise<string | null>;
+  showToast: (message: string) => void;
+  currentProviderName: string;
+}
+
+export function usePromptEditor({
+  currentVersion,
+  selectedPrompt,
+  versionsLength,
+  updateCurrentVersionContent,
+  updatePromptContent,
+  saveCurrentData,
+  improvePrompt,
+  generatePrompt,
+  showToast,
+  currentProviderName,
+}: UsePromptEditorProps) {
+  const [feedback, setFeedback] = useState('');
+  const [originalContent, setOriginalContent] = useState<string>('');
+
+  // Track original content when prompt changes (to detect unsaved changes)
+  useEffect(() => {
+    if (currentVersion?.content) {
+      setOriginalContent(currentVersion.content);
+    } else {
+      setOriginalContent('');
+    }
+  // Only run when the prompt selection changes, not on every content edit
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPrompt, versionsLength]);
+
+  // Detect if there are unsaved changes
+  const hasUnsavedChanges = currentVersion?.content !== originalContent && originalContent !== '';
+
+  const handleContentChange = useCallback((
+    content: string,
+    selectedProject: string | null,
+    selectedPromptId: string | null
+  ) => {
+    if (!selectedProject || !selectedPromptId) return;
+    updateCurrentVersionContent(selectedProject, selectedPromptId, content);
+  }, [updateCurrentVersionContent]);
+
+  const handleContentBlur = useCallback(() => {
+    saveCurrentData();
+  }, [saveCurrentData]);
+
+  const handleSaveVersion = useCallback((
+    note: string,
+    selectedProject: string | null,
+    selectedPromptId: string | null
+  ) => {
+    if (!selectedProject || !selectedPromptId || !currentVersion?.content) return;
+    // Force new version creation even if content matches (since we update in-place while editing)
+    updatePromptContent(selectedProject, selectedPromptId, currentVersion.content, note, true);
+    // Update original content to reflect the new saved version
+    setOriginalContent(currentVersion.content);
+    showToast('Versión guardada');
+  }, [currentVersion, updatePromptContent, showToast]);
+
+  const handleGenerateFromFeedback = useCallback(async (
+    selectedProject: string | null,
+    selectedPromptId: string | null,
+    testOutput: string
+  ) => {
+    if (!feedback.trim() || !currentVersion?.content || !selectedProject || !selectedPromptId) return;
+
+    const newContent = await improvePrompt(currentVersion.content, feedback, testOutput || null);
+
+    if (newContent) {
+      updatePromptContent(
+        selectedProject,
+        selectedPromptId,
+        newContent,
+        `Feedback: ${feedback.substring(0, 50)}...`,
+        false
+      );
+      setFeedback('');
+    }
+  }, [feedback, currentVersion, improvePrompt, updatePromptContent]);
+
+  const handleGenerateFromDescription = useCallback(async (
+    description: string,
+    selectedProject: string | null,
+    selectedPromptId: string | null
+  ) => {
+    if (!description.trim() || !selectedProject || !selectedPromptId) return;
+
+    const generated = await generatePrompt(description);
+    if (generated) {
+      updatePromptContent(
+        selectedProject,
+        selectedPromptId,
+        generated,
+        `Generado por ${currentProviderName}`,
+        false
+      );
+    }
+  }, [generatePrompt, updatePromptContent, currentProviderName]);
+
+  return {
+    // State
+    feedback,
+    originalContent,
+    hasUnsavedChanges,
+    // Actions
+    setFeedback,
+    handleContentChange,
+    handleContentBlur,
+    handleSaveVersion,
+    handleGenerateFromFeedback,
+    handleGenerateFromDescription,
+  };
+}

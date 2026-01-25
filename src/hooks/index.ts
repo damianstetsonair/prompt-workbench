@@ -1,3 +1,9 @@
 export { useToast } from './useToast';
 export { useAiApi } from './useAiApi';
 export { useWorkbenchData } from './useWorkbenchData';
+export { useProjectSelection } from './useProjectSelection';
+export { useModals } from './useModals';
+export { usePromptTesting } from './usePromptTesting';
+export { usePromptEditor } from './usePromptEditor';
+export { useClipboard } from './useClipboard';
+export { useProjectActions } from './useProjectActions';
