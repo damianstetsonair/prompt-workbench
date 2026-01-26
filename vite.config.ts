@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/prompt-workbench/', // Ajustar al nombre del repo en GitHub
+  // base: '/prompt-workbench/', // Uncomment for GitHub Pages
 });
