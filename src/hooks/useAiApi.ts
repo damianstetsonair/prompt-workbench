@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { aiApi } from '../services/ai-api';
 import { getModelsForProvider } from '../constants';
 import type { Settings, Provider } from '../types';
@@ -10,6 +11,7 @@ interface UseAiApiOptions {
 }
 
 export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
+  const { t } = useTranslation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
       const effectiveModel = overrideModel || settings.providers[effectiveProvider].model;
 
       if (!effectiveApiKey) {
-        setApiError(`Configura tu API key de ${effectiveProvider} en Settings`);
+        setApiError(t('errors.configureApiKey', { provider: effectiveProvider }));
         return null;
       }
 
@@ -101,7 +103,7 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
         };
 
         // Use a default message if no input provided
-        const messageContent = userInput.trim() || 'Ejecuta el prompt';
+        const messageContent = userInput.trim() || 'Execute the prompt';
         const result = await aiApi.sendMessage(
           [{ role: 'user', content: messageContent }],
           effectiveSettings,
@@ -112,19 +114,19 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
         setIsExecuting(false);
         return result as ApiResult;
       } catch (error) {
-        setApiError(`Error ejecutando: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setApiError(t('errors.executionError', { message: error instanceof Error ? error.message : 'Unknown error' }));
         setIsExecuting(false);
         return null;
       }
     },
-    [settings]
+    [settings, t]
   );
 
   // Generate prompt from description
   const generatePrompt = useCallback(
     async (description: string): Promise<string | null> => {
       if (!currentApiKey) {
-        setApiError('Configura tu API key en Settings');
+        setApiError(t('errors.configureApiKey', { provider: settings.provider }));
         return null;
       }
 
@@ -136,12 +138,12 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
         setIsGenerating(false);
         return result;
       } catch (error) {
-        setApiError(`Error generando prompt: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setApiError(t('errors.generationError', { message: error instanceof Error ? error.message : 'Unknown error' }));
         setIsGenerating(false);
         return null;
       }
     },
-    [settings, currentApiKey]
+    [settings, currentApiKey, t]
   );
 
   // Improve prompt based on feedback
@@ -152,7 +154,7 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
       lastOutput: string | null
     ): Promise<string | null> => {
       if (!currentApiKey) {
-        setApiError('Configura tu API key en Settings');
+        setApiError(t('errors.configureApiKey', { provider: settings.provider }));
         return null;
       }
 
@@ -169,12 +171,12 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
         setIsGenerating(false);
         return result;
       } catch (error) {
-        setApiError(`Error generando versión: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setApiError(t('errors.generationError', { message: error instanceof Error ? error.message : 'Unknown error' }));
         setIsGenerating(false);
         return null;
       }
     },
-    [settings, currentApiKey]
+    [settings, currentApiKey, t]
   );
 
   return {

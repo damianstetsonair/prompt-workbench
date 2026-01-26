@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Button } from '../ui';
 import type { ConfirmModalState } from '../../types';
 
@@ -9,15 +10,17 @@ interface ConfirmModalProps {
 }
 
 export function ConfirmModal({ state, onClose, onConfirm }: ConfirmModalProps) {
-  const getDescription = () => {
+  const { t } = useTranslation();
+
+  const getMessage = () => {
     switch (state.type) {
       case 'project':
-        return 'Se eliminarán todos los prompts y versiones del proyecto. Esta acción no se puede deshacer.';
+        return t('modals.confirm.deleteProject', { name: state.name });
       case 'version':
-        return 'Esta versión será eliminada permanentemente. Esta acción no se puede deshacer.';
+        return t('modals.confirm.deleteVersion', { name: state.name });
       case 'prompt':
       default:
-        return 'Se eliminarán todas las versiones de este prompt. Esta acción no se puede deshacer.';
+        return t('modals.confirm.deletePrompt', { name: state.name });
     }
   };
 
@@ -29,10 +32,10 @@ export function ConfirmModal({ state, onClose, onConfirm }: ConfirmModalProps) {
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancelar
+            {t('modals.confirm.cancel')}
           </Button>
           <Button variant="danger" icon={<Trash2 className="w-4 h-4" />} onClick={onConfirm}>
-            Eliminar
+            {t('modals.confirm.delete')}
           </Button>
         </>
       }
@@ -41,14 +44,10 @@ export function ConfirmModal({ state, onClose, onConfirm }: ConfirmModalProps) {
         <div className="p-2 bg-red-900/30 rounded-full">
           <Trash2 className="w-5 h-5 text-red-400" />
         </div>
-        <h2 className="text-lg font-semibold">Confirmar eliminación</h2>
+        <h2 className="text-lg font-semibold">{t('modals.confirm.delete')}</h2>
       </div>
 
-      <p className="text-gray-300 mb-2">
-        ¿Estás seguro de que querés eliminar{' '}
-        <span className="font-medium text-white">"{state.name}"</span>?
-      </p>
-      <p className="text-sm text-gray-500">{getDescription()}</p>
+      <p className="text-gray-300">{getMessage()}</p>
     </Modal>
   );
 }

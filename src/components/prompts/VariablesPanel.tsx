@@ -1,4 +1,5 @@
 import { Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface VariablesPanelProps {
   variables: string[];
@@ -7,6 +8,8 @@ interface VariablesPanelProps {
 }
 
 export function VariablesPanel({ variables, values, onChange }: VariablesPanelProps) {
+  const { t } = useTranslation();
+  
   if (variables.length === 0) return null;
 
   const handleChange = (varName: string, value: string) => {
@@ -16,7 +19,7 @@ export function VariablesPanel({ variables, values, onChange }: VariablesPanelPr
   return (
     <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
       <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-        <Zap className="w-4 h-4 text-yellow-400" /> Variables
+        <Zap className="w-4 h-4 text-yellow-400" /> {t('tester.variables')}
       </h3>
       <div className="space-y-2">
         {variables.map((varName) => (
@@ -28,7 +31,7 @@ export function VariablesPanel({ variables, values, onChange }: VariablesPanelPr
               value={values[varName] || ''}
               onChange={(e) => handleChange(varName, e.target.value)}
               className="flex-1 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm focus:outline-none focus:border-purple-500"
-              placeholder={`Valor para ${varName}`}
+              placeholder={varName}
             />
           </div>
         ))}

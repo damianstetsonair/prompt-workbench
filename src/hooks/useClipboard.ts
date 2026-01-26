@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface UseClipboardProps {
   showToast: (message: string) => void;
 }
 
 export function useClipboard({ showToast }: UseClipboardProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = useCallback(async (text: string | undefined) => {
@@ -12,12 +14,12 @@ export function useClipboard({ showToast }: UseClipboardProps) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      showToast('¡Prompt copiado al portapapeles!');
+      showToast(t('toast.promptCopied'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      showToast('Error al copiar');
+      showToast(t('toast.copyError'));
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   return {
     copied,

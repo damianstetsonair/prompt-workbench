@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { History, Trash2, Zap, X, Copy, Check, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui';
 import { DiffView } from './DiffView';
 import type { Version, TestRun, CompareVersionsState } from '../../types';
@@ -23,11 +24,12 @@ export function PromptHistory({
   onDeleteTestRun,
   onDeleteAllTestRuns,
 }: PromptHistoryProps) {
+  const { t } = useTranslation();
   const [compareVersions, setCompareVersions] = useState<CompareVersionsState>({
     old: null,
     new: null,
   });
-  const [diffExpanded, setDiffExpanded] = useState(false);
+  const [diffExpanded] = useState(false);
   const [selectedRun, setSelectedRun] = useState<TestRun | null>(null);
   const [copiedField, setCopiedField] = useState<'input' | 'output' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<'all' | string | null>(null);
@@ -113,7 +115,7 @@ export function PromptHistory({
         {/* Versions list */}
         {!diffExpanded && (
           <div className="flex flex-col min-h-0">
-            <h3 className="text-sm font-medium mb-2">Versiones</h3>
+            <h3 className="text-sm font-medium mb-2">{t('history.versionHistory')}</h3>
             <div className="flex-1 overflow-auto space-y-2">
               {reversedVersions.map((version, idx) => (
                 <div
@@ -129,7 +131,7 @@ export function PromptHistory({
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-sm">v{version.version}</span>
                       {version.version === currentVersion?.version && (
-                        <span className="text-xs bg-purple-600 px-1.5 py-0.5 rounded">actual</span>
+                        <span className="text-xs bg-purple-600 px-1.5 py-0.5 rounded">{t('history.current')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -143,7 +145,7 @@ export function PromptHistory({
                             onDeleteVersion(version);
                           }}
                           className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 rounded"
-                          title="Eliminar versión"
+                          title={t('history.deleteVersion')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -165,7 +167,7 @@ export function PromptHistory({
                 ? `Diff: v${compareVersions.old.version} → v${compareVersions.new.version}`
                 : compareVersions.new
                 ? `v${compareVersions.new.version}`
-                : 'Selecciona una versión para ver el diff'}
+                : t('history.compareVersions')}
             </h3>
             <div className="flex items-center gap-2">
               {compareVersions.new && compareVersions.new.version !== currentVersion?.version && (
@@ -176,16 +178,9 @@ export function PromptHistory({
                   icon={<History className="w-3 h-3" />}
                   onClick={() => onRollback(compareVersions.new!)}
                 >
-                  Restaurar v{compareVersions.new.version}
+                  {t('history.rollback')}
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setDiffExpanded(!diffExpanded)}
-              >
-                {diffExpanded ? 'Contraer' : 'Expandir'}
-              </Button>
             </div>
           </div>
 
@@ -198,13 +193,13 @@ export function PromptHistory({
             ) : compareVersions.new ? (
               <div className="h-full bg-gray-900 rounded-lg p-4 border border-gray-700 overflow-auto">
                 <p className="text-sm text-gray-400 mb-2">
-                  Contenido de v{compareVersions.new.version}:
+                  v{compareVersions.new.version}:
                 </p>
                 <pre className="text-xs whitespace-pre-wrap">{compareVersions.new.content}</pre>
               </div>
             ) : (
               <div className="h-full bg-gray-900 rounded-lg p-4 border border-gray-700 text-gray-500 text-sm flex items-center justify-center">
-                Click en una versión para ver sus detalles
+                {t('history.selectOldVersion')}
               </div>
             )}
           </div>
@@ -215,10 +210,10 @@ export function PromptHistory({
       {testRuns.length > 0 && !diffExpanded && (
         <div className="border-t border-gray-800 pt-3">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-medium text-gray-400">Test Runs Recientes ({testRuns.length})</h3>
+            <h3 className="text-xs font-medium text-gray-400">{t('history.recentTests')} ({testRuns.length})</h3>
             {confirmDelete === 'all' ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-red-400">¿Eliminar todos?</span>
+                <span className="text-xs text-red-400">{t('history.confirmClearAll')}</span>
                 <button
                   onClick={() => {
                     onDeleteAllTestRuns();
@@ -227,13 +222,13 @@ export function PromptHistory({
                   }}
                   className="text-xs text-red-400 hover:text-red-300 font-medium"
                 >
-                  Sí
+                  {t('history.yes')}
                 </button>
                 <button
                   onClick={() => setConfirmDelete(null)}
                   className="text-xs text-gray-400 hover:text-white"
                 >
-                  No
+                  {t('history.no')}
                 </button>
               </div>
             ) : (
@@ -242,7 +237,7 @@ export function PromptHistory({
                 className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-red-400 transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
-                <span>Limpiar todo</span>
+                <span>{t('history.clearAll')}</span>
               </button>
             )}
           </div>
@@ -290,7 +285,7 @@ export function PromptHistory({
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-300 truncate">{run.input || 'Sin input'}</p>
+                  <p className="text-gray-300 truncate">{run.input || t('tester.noNote')}</p>
                   <p className="text-gray-500 truncate text-[10px] mt-0.5">{run.output.substring(0, 50)}...</p>
                 </div>
               ))}
@@ -335,7 +330,7 @@ export function PromptHistory({
                         setSelectedRun(null);
                       }}
                       className="text-gray-400 hover:text-red-400 transition-colors"
-                      title="Eliminar este run"
+                      title={t('history.deleteRun')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -351,33 +346,33 @@ export function PromptHistory({
                 <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
                   <div className="flex flex-col min-h-0">
                     <div className="flex items-center justify-between mb-1 flex-shrink-0">
-                      <span className="text-xs text-gray-400">Input</span>
+                      <span className="text-xs text-gray-400">{t('tester.input')}</span>
                       <button
                         onClick={() => handleCopy(selectedRun.input || '', 'input')}
                         className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-white transition-colors"
                       >
                         {copiedField === 'input' ? (
-                          <><Check className="w-3 h-3 text-green-400" /><span className="text-green-400">Copiado</span></>
+                          <><Check className="w-3 h-3 text-green-400" /><span className="text-green-400">{t('header.copied')}</span></>
                         ) : (
-                          <><Copy className="w-3 h-3" /><span>Copiar</span></>
+                          <><Copy className="w-3 h-3" /><span>{t('history.copyInput')}</span></>
                         )}
                       </button>
                     </div>
                     <div className="bg-gray-800 rounded p-2 text-xs flex-1 overflow-auto whitespace-pre-wrap">
-                      {selectedRun.input || <span className="text-gray-500">Sin input</span>}
+                      {selectedRun.input || <span className="text-gray-500">{t('tester.noNote')}</span>}
                     </div>
                   </div>
                   <div className="flex flex-col min-h-0">
                     <div className="flex items-center justify-between mb-1 flex-shrink-0">
-                      <span className="text-xs text-gray-400">Output</span>
+                      <span className="text-xs text-gray-400">{t('tester.output')}</span>
                       <button
                         onClick={() => handleCopy(selectedRun.output, 'output')}
                         className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-white transition-colors"
                       >
                         {copiedField === 'output' ? (
-                          <><Check className="w-3 h-3 text-green-400" /><span className="text-green-400">Copiado</span></>
+                          <><Check className="w-3 h-3 text-green-400" /><span className="text-green-400">{t('header.copied')}</span></>
                         ) : (
-                          <><Copy className="w-3 h-3" /><span>Copiar</span></>
+                          <><Copy className="w-3 h-3" /><span>{t('history.copyOutput')}</span></>
                         )}
                       </button>
                     </div>

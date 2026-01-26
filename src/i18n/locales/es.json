@@ -1,0 +1,143 @@
+{
+  "app": {
+    "name": "Prompt Workbench",
+    "tagline": "Selecciona o crea un prompt para comenzar"
+  },
+  "sidebar": {
+    "newProject": "Nuevo proyecto",
+    "export": "Exportar",
+    "import": "Importar",
+    "settings": "Configuración",
+    "newPrompt": "Nuevo prompt",
+    "downloadZip": "Descargar prompts como ZIP",
+    "renameProject": "Renombrar proyecto",
+    "deleteProject": "Eliminar proyecto"
+  },
+  "header": {
+    "edit": "Editar",
+    "test": "Probar",
+    "history": "Historial",
+    "version": "Versión",
+    "versions": "versiones",
+    "copyPrompt": "Copiar prompt",
+    "copied": "¡Copiado!",
+    "deletePrompt": "Eliminar prompt"
+  },
+  "editor": {
+    "prompt": "Prompt",
+    "feedback": "Feedback",
+    "feedbackPlaceholder": "¿Qué mejorarías del resultado?",
+    "generateVersion": "Generar v{{version}}",
+    "saveVersion": "Guardar versión",
+    "saveVersionNote": "Nota de versión (opcional)",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "generateWithAI": "Generar con IA",
+    "descriptionPlaceholder": "Describe qué quieres que haga el prompt...",
+    "generate": "Generar",
+    "generating": "Generando...",
+    "close": "Cerrar",
+    "edit": "Editar",
+    "preview": "Vista previa",
+    "feedbackForNewVersion": "Dar feedback para nueva versión"
+  },
+  "tester": {
+    "version": "Versión",
+    "latest": "Última",
+    "provider": "IA",
+    "model": "Modelo",
+    "default": "Por defecto",
+    "input": "Entrada",
+    "inputPlaceholder": "Escribe la entrada para probar el prompt...",
+    "output": "Salida",
+    "outputPlaceholder": "La salida aparecerá aquí...",
+    "execute": "Ejecutar",
+    "executing": "Ejecutando...",
+    "plainText": "Texto plano",
+    "markdown": "Markdown",
+    "copy": "Copiar",
+    "variables": "Variables",
+    "addTest": "Agregar otra prueba",
+    "removeTest": "Eliminar prueba",
+    "resetSizes": "pulsa R para restablecer tamaños",
+    "noNote": "Sin nota"
+  },
+  "history": {
+    "versionHistory": "Historial de versiones",
+    "recentTests": "Pruebas recientes",
+    "noVersions": "Aún no hay versiones",
+    "noTests": "Aún no hay pruebas",
+    "rollback": "Restaurar esta versión",
+    "deleteVersion": "Eliminar versión",
+    "current": "actual",
+    "clearAll": "Limpiar todo",
+    "confirmClearAll": "¿Eliminar todas las pruebas?",
+    "yes": "Sí",
+    "no": "No",
+    "tokens": "tokens",
+    "compareVersions": "Comparar versiones",
+    "selectOldVersion": "Selecciona versión anterior",
+    "selectNewVersion": "Selecciona versión nueva",
+    "additions": "agregados",
+    "deletions": "eliminados",
+    "noChanges": "Sin cambios entre versiones",
+    "copyInput": "Copiar entrada",
+    "copyOutput": "Copiar salida",
+    "deleteRun": "Eliminar prueba"
+  },
+  "settings": {
+    "title": "Configuración",
+    "provider": "Proveedor de IA",
+    "apiKey": "Clave API",
+    "apiKeyPlaceholder": "Ingresa tu clave API",
+    "model": "Modelo",
+    "language": "Idioma",
+    "save": "Guardar",
+    "getKey": "Obtener clave"
+  },
+  "modals": {
+    "newPrompt": {
+      "title": "Nuevo Prompt",
+      "name": "Nombre",
+      "namePlaceholder": "Mi prompt",
+      "description": "Descripción (opcional)",
+      "descriptionPlaceholder": "Describe qué quieres que haga el prompt y la IA lo generará...",
+      "create": "Crear",
+      "creating": "Creando..."
+    },
+    "confirm": {
+      "deleteProject": "¿Seguro que quieres eliminar el proyecto \"{{name}}\"?",
+      "deletePrompt": "¿Seguro que quieres eliminar el prompt \"{{name}}\"?",
+      "deleteVersion": "¿Seguro que quieres eliminar la versión {{name}}?",
+      "delete": "Eliminar",
+      "cancel": "Cancelar"
+    }
+  },
+  "toast": {
+    "promptCopied": "¡Prompt copiado al portapapeles!",
+    "copyError": "Error al copiar",
+    "versionSaved": "Versión guardada",
+    "importSuccess": "Importación exitosa: {{details}}",
+    "importNoChanges": "No hay cambios nuevos para importar",
+    "importError": "Error al importar: archivo inválido",
+    "downloaded": "Descargado(s) {{count}} prompt(s)",
+    "noPromptsToDownload": "No hay prompts para descargar",
+    "zipError": "Error al crear el ZIP",
+    "projectsAdded": "{{count}} proyecto(s) añadido(s)",
+    "projectsUpdated": "{{count}} proyecto(s) actualizado(s)"
+  },
+  "errors": {
+    "configureApiKey": "Configura tu clave API de {{provider}} en Configuración",
+    "executionError": "Error ejecutando: {{message}}",
+    "generationError": "Error generando: {{message}}"
+  },
+  "metrics": {
+    "inputTokens": "Ent",
+    "outputTokens": "Sal"
+  },
+  "languages": {
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés"
+  }
+}

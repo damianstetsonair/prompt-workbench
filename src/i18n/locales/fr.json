@@ -1,0 +1,143 @@
+{
+  "app": {
+    "name": "Prompt Workbench",
+    "tagline": "Sélectionnez ou créez un prompt pour commencer"
+  },
+  "sidebar": {
+    "newProject": "Nouveau projet",
+    "export": "Exporter",
+    "import": "Importer",
+    "settings": "Paramètres",
+    "newPrompt": "Nouveau prompt",
+    "downloadZip": "Télécharger les prompts en ZIP",
+    "renameProject": "Renommer le projet",
+    "deleteProject": "Supprimer le projet"
+  },
+  "header": {
+    "edit": "Éditer",
+    "test": "Tester",
+    "history": "Historique",
+    "version": "Version",
+    "versions": "versions",
+    "copyPrompt": "Copier le prompt",
+    "copied": "Copié !",
+    "deletePrompt": "Supprimer le prompt"
+  },
+  "editor": {
+    "prompt": "Prompt",
+    "feedback": "Retour",
+    "feedbackPlaceholder": "Qu'est-ce que vous amélioreriez dans le résultat ?",
+    "generateVersion": "Générer v{{version}}",
+    "saveVersion": "Enregistrer la version",
+    "saveVersionNote": "Note de version (facultatif)",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "generateWithAI": "Générer avec l'IA",
+    "descriptionPlaceholder": "Décrivez ce que vous voulez que le prompt fasse...",
+    "generate": "Générer",
+    "generating": "Génération...",
+    "close": "Fermer",
+    "edit": "Éditer",
+    "preview": "Aperçu",
+    "feedbackForNewVersion": "Donner un retour pour une nouvelle version"
+  },
+  "tester": {
+    "version": "Version",
+    "latest": "Dernière",
+    "provider": "IA",
+    "model": "Modèle",
+    "default": "Par défaut",
+    "input": "Entrée",
+    "inputPlaceholder": "Entrez le texte pour tester le prompt...",
+    "output": "Sortie",
+    "outputPlaceholder": "La sortie apparaîtra ici...",
+    "execute": "Exécuter",
+    "executing": "Exécution...",
+    "plainText": "Texte brut",
+    "markdown": "Markdown",
+    "copy": "Copier",
+    "variables": "Variables",
+    "addTest": "Ajouter un autre test",
+    "removeTest": "Supprimer le test",
+    "resetSizes": "appuyez sur R pour réinitialiser les tailles",
+    "noNote": "Sans note"
+  },
+  "history": {
+    "versionHistory": "Historique des versions",
+    "recentTests": "Tests récents",
+    "noVersions": "Aucune version pour l'instant",
+    "noTests": "Aucun test pour l'instant",
+    "rollback": "Restaurer cette version",
+    "deleteVersion": "Supprimer la version",
+    "current": "actuelle",
+    "clearAll": "Tout effacer",
+    "confirmClearAll": "Effacer tous les tests ?",
+    "yes": "Oui",
+    "no": "Non",
+    "tokens": "tokens",
+    "compareVersions": "Comparer les versions",
+    "selectOldVersion": "Sélectionner l'ancienne version",
+    "selectNewVersion": "Sélectionner la nouvelle version",
+    "additions": "ajouts",
+    "deletions": "suppressions",
+    "noChanges": "Aucun changement entre les versions",
+    "copyInput": "Copier l'entrée",
+    "copyOutput": "Copier la sortie",
+    "deleteRun": "Supprimer le test"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "provider": "Fournisseur d'IA",
+    "apiKey": "Clé API",
+    "apiKeyPlaceholder": "Entrez votre clé API",
+    "model": "Modèle",
+    "language": "Langue",
+    "save": "Enregistrer",
+    "getKey": "Obtenir une clé"
+  },
+  "modals": {
+    "newPrompt": {
+      "title": "Nouveau Prompt",
+      "name": "Nom",
+      "namePlaceholder": "Mon prompt",
+      "description": "Description (facultatif)",
+      "descriptionPlaceholder": "Décrivez ce que vous voulez que le prompt fasse et l'IA le générera...",
+      "create": "Créer",
+      "creating": "Création..."
+    },
+    "confirm": {
+      "deleteProject": "Êtes-vous sûr de vouloir supprimer le projet « {{name}} » ?",
+      "deletePrompt": "Êtes-vous sûr de vouloir supprimer le prompt « {{name}} » ?",
+      "deleteVersion": "Êtes-vous sûr de vouloir supprimer la version {{name}} ?",
+      "delete": "Supprimer",
+      "cancel": "Annuler"
+    }
+  },
+  "toast": {
+    "promptCopied": "Prompt copié dans le presse-papiers !",
+    "copyError": "Erreur lors de la copie",
+    "versionSaved": "Version enregistrée",
+    "importSuccess": "Importation réussie : {{details}}",
+    "importNoChanges": "Aucun nouveau changement à importer",
+    "importError": "Erreur d'importation : fichier invalide",
+    "downloaded": "{{count}} prompt(s) téléchargé(s)",
+    "noPromptsToDownload": "Aucun prompt à télécharger",
+    "zipError": "Erreur lors de la création du ZIP",
+    "projectsAdded": "{{count}} projet(s) ajouté(s)",
+    "projectsUpdated": "{{count}} projet(s) mis à jour"
+  },
+  "errors": {
+    "configureApiKey": "Configurez votre clé API {{provider}} dans les Paramètres",
+    "executionError": "Erreur d'exécution : {{message}}",
+    "generationError": "Erreur de génération : {{message}}"
+  },
+  "metrics": {
+    "inputTokens": "Ent",
+    "outputTokens": "Sor"
+  },
+  "languages": {
+    "en": "Anglais",
+    "es": "Espagnol",
+    "fr": "Français"
+  }
+}

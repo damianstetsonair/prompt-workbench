@@ -1,0 +1,143 @@
+{
+  "app": {
+    "name": "Prompt Workbench",
+    "tagline": "Select or create a prompt to get started"
+  },
+  "sidebar": {
+    "newProject": "New project",
+    "export": "Export",
+    "import": "Import",
+    "settings": "Settings",
+    "newPrompt": "New prompt",
+    "downloadZip": "Download prompts as ZIP",
+    "renameProject": "Rename project",
+    "deleteProject": "Delete project"
+  },
+  "header": {
+    "edit": "Edit",
+    "test": "Test",
+    "history": "History",
+    "version": "Version",
+    "versions": "versions",
+    "copyPrompt": "Copy prompt",
+    "copied": "Copied!",
+    "deletePrompt": "Delete prompt"
+  },
+  "editor": {
+    "prompt": "Prompt",
+    "feedback": "Feedback",
+    "feedbackPlaceholder": "What would you improve about the output?",
+    "generateVersion": "Generate v{{version}}",
+    "saveVersion": "Save version",
+    "saveVersionNote": "Version note (optional)",
+    "save": "Save",
+    "cancel": "Cancel",
+    "generateWithAI": "Generate with AI",
+    "descriptionPlaceholder": "Describe what you want the prompt to do...",
+    "generate": "Generate",
+    "generating": "Generating...",
+    "close": "Close",
+    "edit": "Edit",
+    "preview": "Preview",
+    "feedbackForNewVersion": "Give feedback for new version"
+  },
+  "tester": {
+    "version": "Version",
+    "latest": "Latest",
+    "provider": "AI",
+    "model": "Model",
+    "default": "Default",
+    "input": "Input",
+    "inputPlaceholder": "Enter the input to test the prompt...",
+    "output": "Output",
+    "outputPlaceholder": "Output will appear here...",
+    "execute": "Run",
+    "executing": "Running...",
+    "plainText": "Plain text",
+    "markdown": "Markdown",
+    "copy": "Copy",
+    "variables": "Variables",
+    "addTest": "Add another test",
+    "removeTest": "Remove test",
+    "resetSizes": "press R to reset sizes",
+    "noNote": "No note"
+  },
+  "history": {
+    "versionHistory": "Version History",
+    "recentTests": "Recent Test Runs",
+    "noVersions": "No versions yet",
+    "noTests": "No test runs yet",
+    "rollback": "Rollback to this version",
+    "deleteVersion": "Delete version",
+    "current": "current",
+    "clearAll": "Clear all",
+    "confirmClearAll": "Clear all test runs?",
+    "yes": "Yes",
+    "no": "No",
+    "tokens": "tokens",
+    "compareVersions": "Compare versions",
+    "selectOldVersion": "Select older version",
+    "selectNewVersion": "Select newer version",
+    "additions": "additions",
+    "deletions": "deletions",
+    "noChanges": "No changes between versions",
+    "copyInput": "Copy input",
+    "copyOutput": "Copy output",
+    "deleteRun": "Delete run"
+  },
+  "settings": {
+    "title": "Settings",
+    "provider": "AI Provider",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter your API key",
+    "model": "Model",
+    "language": "Language",
+    "save": "Save",
+    "getKey": "Get key"
+  },
+  "modals": {
+    "newPrompt": {
+      "title": "New Prompt",
+      "name": "Name",
+      "namePlaceholder": "My prompt",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Describe what you want the prompt to do and AI will generate it...",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "confirm": {
+      "deleteProject": "Are you sure you want to delete the project \"{{name}}\"?",
+      "deletePrompt": "Are you sure you want to delete the prompt \"{{name}}\"?",
+      "deleteVersion": "Are you sure you want to delete version {{name}}?",
+      "delete": "Delete",
+      "cancel": "Cancel"
+    }
+  },
+  "toast": {
+    "promptCopied": "Prompt copied to clipboard!",
+    "copyError": "Error copying",
+    "versionSaved": "Version saved",
+    "importSuccess": "Import successful: {{details}}",
+    "importNoChanges": "No new changes to import",
+    "importError": "Import error: invalid file",
+    "downloaded": "Downloaded {{count}} prompt(s)",
+    "noPromptsToDownload": "No prompts to download",
+    "zipError": "Error creating ZIP",
+    "projectsAdded": "{{count}} project(s) added",
+    "projectsUpdated": "{{count}} project(s) updated"
+  },
+  "errors": {
+    "configureApiKey": "Configure your {{provider}} API key in Settings",
+    "executionError": "Execution error: {{message}}",
+    "generationError": "Generation error: {{message}}"
+  },
+  "metrics": {
+    "inputTokens": "In",
+    "outputTokens": "Out"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French"
+  }
+}

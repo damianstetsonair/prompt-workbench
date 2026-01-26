@@ -1,4 +1,5 @@
 import { RefreshCw, Sparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   useWorkbenchData,
@@ -27,6 +28,8 @@ import {
 } from './components';
 
 export default function App() {
+  const { t } = useTranslation();
+
   // Core data hook
   const workbench = useWorkbenchData();
   
@@ -238,7 +241,7 @@ export default function App() {
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <div className="text-center">
               <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Selecciona o crea un prompt para comenzar</p>
+              <p>{t('app.tagline')}</p>
             </div>
           </div>
         )}

@@ -1,6 +1,8 @@
 import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Button, Input, Select } from '../ui';
 import { PROVIDERS } from '../../constants';
+import { SUPPORTED_LANGUAGES } from '../../i18n';
 import type { Settings as SettingsType, ModelInfo, Provider } from '../../types';
 
 interface SettingsModalProps {
@@ -41,9 +43,15 @@ export function SettingsModal({
   onApiKeyChange,
   onModelChange,
 }: SettingsModalProps) {
+  const { t, i18n } = useTranslation();
+
   const handleSave = () => {
     onSave();
     onClose();
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
   };
 
   const currentProvider = settings.provider;
@@ -55,22 +63,33 @@ export function SettingsModal({
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={handleSave}
-      title="Settings"
+      title={t('settings.title')}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancelar
+            {t('modals.confirm.cancel')}
           </Button>
           <Button onClick={handleSave} icon={<Check className="w-4 h-4" />}>
-            Guardar
+            {t('settings.save')}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
+        {/* Language selector */}
+        <Select
+          label={t('settings.language')}
+          options={SUPPORTED_LANGUAGES.map((lang) => ({ 
+            value: lang.code, 
+            label: `${lang.flag} ${lang.name}` 
+          }))}
+          value={i18n.language.split('-')[0]}
+          onChange={(e) => handleLanguageChange(e.target.value)}
+        />
+
         {/* Provider selector */}
         <Select
-          label="Proveedor de IA"
+          label={t('settings.provider')}
           options={PROVIDERS.map((p) => ({ value: p.id, label: p.name }))}
           value={currentProvider}
           onChange={(e) => onProviderChange(e.target.value as Provider)}
@@ -79,7 +98,7 @@ export function SettingsModal({
         {/* API Key for selected provider */}
         <div>
           <Input
-            label={`API Key de ${PROVIDERS.find(p => p.id === currentProvider)?.name || currentProvider} *`}
+            label={`${t('settings.apiKey')} (${PROVIDERS.find(p => p.id === currentProvider)?.name || currentProvider}) *`}
             type="password"
             value={currentProviderSettings.apiKey}
             onChange={(e) => onApiKeyChange(e.target.value)}
@@ -87,7 +106,7 @@ export function SettingsModal({
             className="font-mono"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Obtené tu API key en{' '}
+            {t('settings.getKey')}:{' '}
             <a
               href={apiKeyLink.url}
               target="_blank"
@@ -101,17 +120,17 @@ export function SettingsModal({
 
         {/* Model selector for selected provider */}
         <Select
-          label="Modelo"
+          label={t('settings.model')}
           options={availableModels.map((m) => ({ value: m.id, label: m.name }))}
           value={currentProviderSettings.model}
           onChange={(e) => onModelChange(e.target.value)}
-          hint={`${availableModels.length} modelos disponibles`}
+          hint={`${availableModels.length} ${t('settings.model').toLowerCase()}s`}
         />
 
         {/* Temperature slider */}
         <div>
           <label className="text-sm font-medium mb-1 block">
-            Temperatura: {settings.temperature.toFixed(1)}
+            Temperature: {settings.temperature.toFixed(1)}
           </label>
           <input
             type="range"
@@ -125,14 +144,14 @@ export function SettingsModal({
             className="w-full accent-purple-500"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>0 - Más determinístico</span>
-            <span>1 - Más creativo</span>
+            <span>0 - Deterministic</span>
+            <span>1 - Creative</span>
           </div>
         </div>
 
         {/* API Keys status summary */}
         <div className="pt-4 border-t border-gray-700">
-          <p className="text-xs text-gray-400 mb-2">Estado de API Keys:</p>
+          <p className="text-xs text-gray-400 mb-2">API Keys:</p>
           <div className="space-y-1">
             {PROVIDERS.map((provider) => {
               const hasKey = !!settings.providers[provider.id].apiKey;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Sparkles,
   ChevronRight,
@@ -60,6 +61,7 @@ export function Sidebar({
   onOpenSettings,
   onDownloadProject,
 }: SidebarProps) {
+  const { t } = useTranslation();
   const [editingName, setEditingName] = useState<EditingState | null>(null);
   const [tempName, setTempName] = useState('');
   const [draggedPrompt, setDraggedPrompt] = useState<DraggedPromptState | null>(null);
@@ -125,7 +127,7 @@ export function Sidebar({
       <div className="p-4 border-b border-gray-800">
         <h1 className="text-lg font-bold flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-purple-400" />
-          Prompt Workbench
+          {t('app.name')}
         </h1>
       </div>
 
@@ -179,7 +181,7 @@ export function Sidebar({
                     onDownloadProject(project.id);
                   }}
                   className="hover:text-green-400"
-                  title="Descargar prompts como ZIP"
+                  title={t('sidebar.downloadZip')}
                 >
                   <Download className="w-3 h-3" />
                 </button>
@@ -189,7 +191,7 @@ export function Sidebar({
                     handleStartEdit('project', project.id, project.name);
                   }}
                   className="hover:text-blue-400"
-                  title="Renombrar proyecto"
+                  title={t('sidebar.renameProject')}
                 >
                   <Edit3 className="w-3 h-3" />
                 </button>
@@ -199,7 +201,7 @@ export function Sidebar({
                     onDeleteProject(project.id);
                   }}
                   className="hover:text-red-400"
-                  title="Eliminar proyecto"
+                  title={t('sidebar.deleteProject')}
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
@@ -251,7 +253,7 @@ export function Sidebar({
                         onDeletePrompt(project.id, prompt.id);
                       }}
                       className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 rounded"
-                      title="Eliminar prompt"
+                      title={t('header.deletePrompt')}
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -262,7 +264,7 @@ export function Sidebar({
                   onClick={() => onNewPrompt(project.id)}
                   className="flex items-center gap-2 p-2 text-sm text-gray-500 hover:text-white w-full"
                 >
-                  <Plus className="w-3 h-3" /> Nuevo prompt
+                  <Plus className="w-3 h-3" /> {t('sidebar.newPrompt')}
                 </button>
               </div>
             )}
@@ -276,28 +278,28 @@ export function Sidebar({
           onClick={onCreateProject}
           className="flex items-center gap-2 p-2 text-sm hover:bg-gray-800 rounded w-full"
         >
-          <FolderPlus className="w-4 h-4" /> Nuevo proyecto
+          <FolderPlus className="w-4 h-4" /> {t('sidebar.newProject')}
         </button>
         <button
           onClick={onExport}
           className="flex items-center gap-2 p-2 text-sm hover:bg-gray-800 rounded w-full"
         >
-          <Download className="w-4 h-4" /> Exportar
+          <Download className="w-4 h-4" /> {t('sidebar.export')}
         </button>
         <label className="flex items-center gap-2 p-2 text-sm hover:bg-gray-800 rounded w-full cursor-pointer">
-          <Upload className="w-4 h-4" /> Importar
+          <Upload className="w-4 h-4" /> {t('sidebar.import')}
           <input type="file" accept=".json" onChange={handleImportChange} className="hidden" />
         </label>
         <button
           onClick={onOpenSettings}
           className="flex items-center gap-2 p-2 text-sm hover:bg-gray-800 rounded w-full"
         >
-          <Settings className="w-4 h-4" /> Settings
+          <Settings className="w-4 h-4" /> {t('sidebar.settings')}
           {!hasApiKey && <span className="ml-auto text-xs text-yellow-500">⚠️</span>}
         </button>
       </div>
 
-      {saving && <div className="p-2 text-xs text-center text-gray-500">Guardando...</div>}
+      {saving && <div className="p-2 text-xs text-center text-gray-500">...</div>}
     </div>
   );
 }

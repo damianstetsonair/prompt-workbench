@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Sparkles, Zap, Clock, Copy, Check, FileText, Code, Plus, X, ChevronDown, MessageSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button, MarkdownRenderer } from '../ui';
 import { VariablesPanel } from './VariablesPanel';
 import { PROVIDERS, getModelsForProvider } from '../../constants';
@@ -34,6 +35,7 @@ function TestSlotRow({
   onGenerateFromFeedback,
   slotIndex,
 }: TestSlotRowProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const hasMetrics = slot.metrics.inputTokens > 0 || slot.metrics.outputTokens > 0;
   const isLatestVersion = slot.versionIndex === -1;
@@ -75,7 +77,7 @@ function TestSlotRow({
   const getVersionLabel = () => {
     if (slot.versionIndex === -1) {
       const latestVersion = versions[versions.length - 1];
-      return `v${latestVersion?.version || '0.0'} (última)`;
+      return `v${latestVersion?.version || '0.0'} (${t('tester.latest').toLowerCase()})`;
     }
     const version = versions[slot.versionIndex];
     return `v${version?.version || '0.0'}`;
@@ -175,17 +177,17 @@ function TestSlotRow({
             {/* Row 1: Version + Provider + Remove button */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <label className="text-xs text-gray-400">Versión:</label>
+                <label className="text-xs text-gray-400">{t('tester.version')}:</label>
                 <div className="relative">
                   <select
                     value={slot.versionIndex}
                     onChange={(e) => onUpdate({ versionIndex: parseInt(e.target.value) })}
                     className="appearance-none bg-gray-800 border border-gray-700 rounded px-2 py-1 pr-6 text-xs focus:outline-none focus:border-purple-500 cursor-pointer"
                   >
-                    <option value={-1}>Última (v{versions[versions.length - 1]?.version || '0.0'})</option>
+                    <option value={-1}>{t('tester.latest')} (v{versions[versions.length - 1]?.version || '0.0'})</option>
                     {versions.map((v, idx) => (
                       <option key={v.version} value={idx}>
-                        v{v.version} - {v.note?.substring(0, 20) || 'Sin nota'}
+                        v{v.version} - {v.note?.substring(0, 20) || t('tester.noNote')}
                       </option>
                     )).reverse()}
                   </select>
@@ -194,14 +196,14 @@ function TestSlotRow({
               </div>
 
               <div className="flex items-center gap-1.5">
-                <label className="text-xs text-gray-400">IA:</label>
+                <label className="text-xs text-gray-400">{t('tester.provider')}:</label>
                 <div className="relative">
                   <select
                     value={slot.provider || ''}
                     onChange={(e) => handleProviderChange(e.target.value as Provider | '')}
                     className="appearance-none bg-gray-800 border border-gray-700 rounded px-2 py-1 pr-6 text-xs focus:outline-none focus:border-purple-500 cursor-pointer"
                   >
-                    <option value="">Por defecto</option>
+                    <option value="">{t('tester.default')}</option>
                     {PROVIDERS.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
@@ -215,7 +217,7 @@ function TestSlotRow({
                 <button
                   onClick={onRemove}
                   className="ml-auto p-1 text-gray-500 hover:text-red-400 transition-colors"
-                  title="Eliminar slot"
+                  title={t('tester.removeTest')}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -224,14 +226,14 @@ function TestSlotRow({
 
             {/* Row 2: Model selector */}
             <div className="flex items-center gap-1.5">
-              <label className="text-xs text-gray-400">Modelo:</label>
+              <label className="text-xs text-gray-400">{t('tester.model')}:</label>
               <div className="relative">
                 <select
                   value={slot.model || ''}
                   onChange={(e) => onUpdate({ model: e.target.value || null })}
                   className="appearance-none bg-gray-800 border border-gray-700 rounded px-2 py-1 pr-6 text-xs focus:outline-none focus:border-purple-500 cursor-pointer"
                 >
-                  <option value="">Por defecto ({availableModels.find(m => m.id === effectiveModel)?.name || effectiveModel})</option>
+                  <option value="">{t('tester.default')} ({availableModels.find(m => m.id === effectiveModel)?.name || effectiveModel})</option>
                   {availableModels.map((m) => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
@@ -242,7 +244,7 @@ function TestSlotRow({
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-1 block">Input</label>
+            <label className="text-sm font-medium mb-1 block">{t('tester.input')}</label>
             <div className="relative">
               <textarea
                 value={slot.input}
@@ -255,7 +257,7 @@ function TestSlotRow({
                 }}
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-2 text-sm resize-none focus:outline-none focus:border-purple-500"
                 style={{ height: inputHeight }}
-                placeholder="Escribe el input para probar el prompt..."
+                placeholder={t('tester.inputPlaceholder')}
               />
               <div
                 onMouseDown={handleInputResizeStart}
@@ -277,12 +279,12 @@ function TestSlotRow({
                 className="bg-green-600 hover:bg-green-700"
                 size="sm"
               >
-                Ejecutar
+                {slot.isExecuting ? t('tester.executing') : t('tester.execute')}
               </Button>
               <span className="text-[10px] text-gray-500">⌘ + Enter</span>
             </div>
             {sizesModified && (
-              <span className="text-[10px] text-gray-500">R restablecer</span>
+              <span className="text-[10px] text-gray-500">{t('tester.resetSizes')}</span>
             )}
           </div>
         </div>
@@ -302,12 +304,12 @@ function TestSlotRow({
             <div className={`flex gap-2 text-xs h-6 ${hasMetrics ? 'visible' : 'invisible'}`}>
               <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded-full">
                 <Zap className="w-3 h-3 text-blue-400" />
-                <span className="text-gray-400">In:</span>
+                <span className="text-gray-400">{t('metrics.inputTokens')}:</span>
                 <span className="font-medium">{slot.metrics.inputTokens.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded-full">
                 <Zap className="w-3 h-3 text-green-400" />
-                <span className="text-gray-400">Out:</span>
+                <span className="text-gray-400">{t('metrics.outputTokens')}:</span>
                 <span className="font-medium">{slot.metrics.outputTokens.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded-full">
@@ -322,7 +324,7 @@ function TestSlotRow({
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-sm font-medium">Output</label>
+              <label className="text-sm font-medium">{t('tester.output')}</label>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
                   <button
@@ -330,7 +332,7 @@ function TestSlotRow({
                     className={`p-1 rounded transition-colors ${
                       !showMarkdown ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'
                     }`}
-                    title="Texto plano"
+                    title={t('tester.plainText')}
                   >
                     <Code className="w-3.5 h-3.5" />
                   </button>
@@ -339,7 +341,7 @@ function TestSlotRow({
                     className={`p-1 rounded transition-colors ${
                       showMarkdown ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-gray-300'
                     }`}
-                    title="Markdown"
+                    title={t('tester.markdown')}
                   >
                     <FileText className="w-3.5 h-3.5" />
                   </button>
@@ -348,17 +350,17 @@ function TestSlotRow({
                   <button
                     onClick={handleCopyOutput}
                     className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors"
-                    title="Copiar output"
+                    title={t('tester.copy')}
                   >
                     {copied ? (
                       <>
                         <Check className="w-3 h-3 text-green-400" />
-                        <span className="text-green-400">Copiado</span>
+                        <span className="text-green-400">{t('header.copied')}</span>
                       </>
                     ) : (
                       <>
                         <Copy className="w-3 h-3" />
-                        <span>Copiar</span>
+                        <span>{t('tester.copy')}</span>
                       </>
                     )}
                   </button>
@@ -379,7 +381,7 @@ function TestSlotRow({
                     slot.output
                   )
                 ) : (
-                  <span className="text-gray-500">El output aparecerá aquí...</span>
+                  <span className="text-gray-500">{t('tester.outputPlaceholder')}</span>
                 )}
               </div>
               <div
@@ -401,13 +403,13 @@ function TestSlotRow({
                     className="flex items-center gap-2 text-sm text-gray-400 hover:text-purple-400 transition-colors"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    <span>Dar feedback para nueva versión</span>
+                    <span>{t('editor.feedbackForNewVersion')}</span>
                   </button>
                 </div>
               ) : (
                 <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">Feedback</h4>
+                    <h4 className="text-sm font-medium">{t('editor.feedback')}</h4>
                     <button
                       onClick={() => setShowFeedback(false)}
                       className="p-1 text-gray-500 hover:text-white transition-colors"
@@ -419,7 +421,7 @@ function TestSlotRow({
                     value={feedback}
                     onChange={(e) => onFeedbackChange(e.target.value)}
                     className="w-full h-20 bg-gray-900 border border-gray-600 rounded p-2 text-sm resize-none focus:outline-none focus:border-purple-500"
-                    placeholder="¿Qué mejorarías del output?"
+                    placeholder={t('editor.feedbackPlaceholder')}
                     autoFocus
                   />
                   <Button
@@ -430,7 +432,7 @@ function TestSlotRow({
                     size="sm"
                     className="mt-2"
                   >
-                    Generar v{nextVersion}
+                    {t('editor.generateVersion', { version: nextVersion })}
                   </Button>
                 </div>
               )}
@@ -481,6 +483,8 @@ export function PromptTester({
   onVariablesChange,
   onGenerateFromFeedback,
 }: PromptTesterProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       {/* Variables panel - shared across all slots */}
@@ -515,7 +519,7 @@ export function PromptTester({
         className="w-full py-2 border border-dashed border-gray-700 rounded-lg text-gray-500 hover:text-white hover:border-gray-500 transition-colors flex items-center justify-center gap-2"
       >
         <Plus className="w-4 h-4" />
-        <span className="text-sm">Agregar otra prueba</span>
+        <span className="text-sm">{t('tester.addTest')}</span>
       </button>
     </div>
   );

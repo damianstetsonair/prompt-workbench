@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { MessageSquare, Sparkles, X, GripVertical, Save, FileText, Edit3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button, MarkdownRenderer, CodeEditor } from '../ui';
 
 interface PromptEditorProps {
@@ -31,6 +32,7 @@ export function PromptEditor({
   onGenerateFromDescription,
   onSaveVersion,
 }: PromptEditorProps) {
+  const { t } = useTranslation();
   const feedbackRef = useRef<HTMLTextAreaElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -278,7 +280,7 @@ export function PromptEditor({
                 ? 'bg-gray-700 text-white' 
                 : 'text-gray-500 hover:text-gray-300'
             }`}
-            title="Editar (Ctrl+Z para deshacer)"
+            title={t('editor.edit')}
           >
             <Edit3 className="w-3.5 h-3.5" />
           </button>
@@ -289,7 +291,7 @@ export function PromptEditor({
                 ? 'bg-gray-700 text-white' 
                 : 'text-gray-500 hover:text-gray-300'
             }`}
-            title="Vista previa Markdown"
+            title={t('editor.preview')}
           >
             <FileText className="w-3.5 h-3.5" />
           </button>
@@ -301,7 +303,7 @@ export function PromptEditor({
               value={content}
               onChange={onContentChange}
               onBlur={onContentBlur}
-              placeholder="Escribe tu prompt aquí..."
+              placeholder={t('editor.descriptionPlaceholder')}
               height={`${textareaHeight}px`}
               autoFocus
               className="rounded-b-none border-b-0"
@@ -312,12 +314,12 @@ export function PromptEditor({
             className="w-full bg-gray-900 border border-gray-700 rounded-lg rounded-b-none p-4 pr-20 overflow-auto cursor-pointer"
             style={{ height: textareaHeight }}
             onClick={() => setViewMode('edit')}
-            title="Click para editar"
+            title={t('editor.edit')}
           >
             {content ? (
               <MarkdownRenderer content={content} />
             ) : (
-              <span className="text-gray-500">Escribe tu prompt aquí...</span>
+              <span className="text-gray-500">{t('editor.descriptionPlaceholder')}</span>
             )}
           </div>
         )}
@@ -335,7 +337,7 @@ export function PromptEditor({
           <button
             onClick={() => setShowGeneratePopup(true)}
             className="absolute bottom-6 right-4 p-3 bg-purple-600 hover:bg-purple-500 rounded-full shadow-lg transition-all hover:scale-110 group"
-            title="Generar prompt con IA"
+            title={t('editor.generateWithAI')}
           >
             <Sparkles className="w-5 h-5 text-white animate-pulse group-hover:animate-none" />
           </button>
@@ -395,7 +397,7 @@ export function PromptEditor({
               <h4 className="text-base font-medium flex items-center gap-2">
                 <GripVertical className="w-4 h-4 text-gray-500" />
                 <Sparkles className="w-5 h-5 text-purple-400" />
-                Generar prompt con IA
+                {t('editor.generateWithAI')}
               </h4>
               <button
                 onClick={() => {
@@ -425,10 +427,10 @@ export function PromptEditor({
                   }
                 }}
                 className="w-full flex-1 bg-gray-900 border border-gray-600 rounded-lg p-4 text-sm resize-none focus:outline-none focus:border-purple-500"
-                placeholder="Describe qué debe hacer el prompt...&#10;&#10;Ej: 'Un agente que analiza código Python y sugiere mejoras de rendimiento, buenas prácticas y posibles bugs'"
+                placeholder={t('editor.descriptionPlaceholder')}
               />
               <div className="flex justify-between items-center mt-3 flex-shrink-0">
-                <span className="text-xs text-gray-500">⌘ + Enter para generar</span>
+                <span className="text-xs text-gray-500">⌘ + Enter</span>
                 <Button
                   onClick={handleGenerate}
                   disabled={!description.trim() || isGenerating}
@@ -436,7 +438,7 @@ export function PromptEditor({
                   size="sm"
                   icon={!isGenerating ? <Sparkles className="w-3 h-3" /> : undefined}
                 >
-                  Generar
+                  {isGenerating ? t('editor.generating') : t('editor.generate')}
                 </Button>
               </div>
             </div>
@@ -446,7 +448,7 @@ export function PromptEditor({
 
       <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
         <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4" /> Feedback para nueva versión
+          <MessageSquare className="w-4 h-4" /> {t('editor.feedbackForNewVersion')}
         </h3>
         <div className="relative">
           <textarea
@@ -456,7 +458,7 @@ export function PromptEditor({
             onKeyDown={handleFeedbackKeyDown}
             className="w-full bg-gray-800 border border-gray-600 rounded rounded-b-none p-3 text-sm resize-none focus:outline-none focus:border-purple-500 focus:border-b-gray-600"
             style={{ height: feedbackHeight }}
-            placeholder="Describe qué cambios querés hacer..."
+            placeholder={t('editor.feedbackPlaceholder')}
           />
           {/* Resize handle for feedback */}
           <div
@@ -474,7 +476,7 @@ export function PromptEditor({
               loading={isGenerating}
               icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
             >
-              Generar nueva versión
+              {isGenerating ? t('editor.generating') : t('editor.generate')}
             </Button>
             <div className="relative">
               <Button
@@ -483,12 +485,12 @@ export function PromptEditor({
                 disabled={!hasUnsavedChanges}
                 icon={<Save className="w-4 h-4" />}
               >
-                Guardar versión
+                {t('editor.saveVersion')}
               </Button>
               {showSavePopup && (
                 <div className="absolute bottom-full left-0 mb-2 w-72 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3 z-50">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Nota de versión</span>
+                    <span className="text-sm font-medium">{t('editor.saveVersionNote')}</span>
                     <button
                       onClick={() => {
                         setShowSavePopup(false);
@@ -505,7 +507,7 @@ export function PromptEditor({
                     onChange={(e) => setVersionNote(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        onSaveVersion(versionNote || 'Guardado manual');
+                        onSaveVersion(versionNote || t('editor.saveVersion'));
                         setShowSavePopup(false);
                         setVersionNote('');
                       }
@@ -515,19 +517,19 @@ export function PromptEditor({
                       }
                     }}
                     className="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500 mb-2"
-                    placeholder="Ej: Mejorado el tono (opcional)"
+                    placeholder={t('editor.saveVersionNote')}
                     autoFocus
                   />
                   <div className="flex gap-2">
                     <Button
                       onClick={() => {
-                        onSaveVersion(versionNote || 'Guardado manual');
+                        onSaveVersion(versionNote || t('editor.saveVersion'));
                         setShowSavePopup(false);
                         setVersionNote('');
                       }}
                       size="sm"
                     >
-                      Guardar
+                      {t('editor.save')}
                     </Button>
                     <Button
                       onClick={() => {
@@ -537,7 +539,7 @@ export function PromptEditor({
                       variant="ghost"
                       size="sm"
                     >
-                      Cancelar
+                      {t('editor.cancel')}
                     </Button>
                   </div>
                 </div>
@@ -546,7 +548,7 @@ export function PromptEditor({
           </div>
           {(textareaHeight !== 384 || feedbackHeight !== 120) && (
             <span className="text-[10px] text-gray-500">
-              pulsa R para restablecer tamaños
+              {t('tester.resetSizes')}
             </span>
           )}
         </div>

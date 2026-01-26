@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Modal, Button, Input, Textarea } from '../ui';
 
 interface NewPromptModalProps {
@@ -15,6 +16,7 @@ export function NewPromptModal({
   onCreate,
   isGenerating,
 }: NewPromptModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
@@ -37,11 +39,11 @@ export function NewPromptModal({
       isOpen={isOpen}
       onClose={handleClose}
       onConfirm={name.trim() && !isGenerating ? handleCreate : undefined}
-      title="Nuevo Prompt"
+      title={t('modals.newPrompt.title')}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose}>
-            Cancelar
+            {t('modals.confirm.cancel')}
           </Button>
           <Button
             onClick={handleCreate}
@@ -49,14 +51,14 @@ export function NewPromptModal({
             loading={isGenerating}
             icon={!isGenerating ? <Plus className="w-4 h-4" /> : undefined}
           >
-            Crear
+            {isGenerating ? t('modals.newPrompt.creating') : t('modals.newPrompt.create')}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
         <Input
-          label="Nombre"
+          label={t('modals.newPrompt.name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
@@ -64,15 +66,15 @@ export function NewPromptModal({
               handleCreate();
             }
           }}
-          placeholder="ej: Orchestrator, Email Writer..."
+          placeholder={t('modals.newPrompt.namePlaceholder')}
           autoFocus
         />
 
         <Textarea
-          label="Descripción (opcional - Claude generará el prompt inicial)"
+          label={t('modals.newPrompt.description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe qué debe hacer el prompt... ej: 'Un agente que analiza datos de CRM y genera recomendaciones de outreach personalizadas'"
+          placeholder={t('modals.newPrompt.descriptionPlaceholder')}
           className="h-32"
         />
       </div>
