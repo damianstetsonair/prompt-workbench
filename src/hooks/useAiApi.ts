@@ -69,10 +69,17 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
   const executePrompt = useCallback(
     async (
       systemPrompt: string,
-      userInput: string
+      userInput: string,
+      overrideProvider?: Provider | null,
+      overrideModel?: string | null
     ): Promise<ApiResult | null> => {
-      if (!currentApiKey) {
-        setApiError('Configura tu API key en Settings');
+      // Determine which provider/model to use
+      const effectiveProvider = overrideProvider || settings.provider;
+      const effectiveApiKey = settings.providers[effectiveProvider].apiKey;
+      const effectiveModel = overrideModel || settings.providers[effectiveProvider].model;
+
+      if (!effectiveApiKey) {
+        setApiError(`Configura tu API key de ${effectiveProvider} en Settings`);
         return null;
       }
 
@@ -80,11 +87,24 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
       setApiError(null);
 
       try {
+        // Create effective settings with overrides
+        const effectiveSettings: Settings = {
+          ...settings,
+          provider: effectiveProvider,
+          providers: {
+            ...settings.providers,
+            [effectiveProvider]: {
+              ...settings.providers[effectiveProvider],
+              model: effectiveModel,
+            },
+          },
+        };
+
         // Use a default message if no input provided
         const messageContent = userInput.trim() || 'Ejecuta el prompt';
         const result = await aiApi.sendMessage(
           [{ role: 'user', content: messageContent }],
-          settings,
+          effectiveSettings,
           systemPrompt,
           true
         );
@@ -97,7 +117,7 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
         return null;
       }
     },
-    [settings, currentApiKey]
+    [settings]
   );
 
   // Generate prompt from description

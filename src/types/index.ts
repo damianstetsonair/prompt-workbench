@@ -112,6 +112,17 @@ export interface Metrics {
   responseTime: number;
 }
 
+export interface TestSlot {
+  id: string;
+  versionIndex: number; // Index into versions array, -1 means latest
+  input: string;
+  output: string;
+  metrics: Metrics;
+  isExecuting: boolean;
+  provider: Provider | null; // null means use default from settings
+  model: string | null; // null means use default from settings
+}
+
 // ============================================
 // API Types
 // ============================================

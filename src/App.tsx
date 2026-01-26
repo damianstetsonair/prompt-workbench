@@ -191,19 +191,20 @@ export default function App() {
 
               {selection.activeTab === 'test' && (
                 <PromptTester
-                  testInput={testing.testInput}
-                  testOutput={testing.testOutput}
+                  slots={testing.slots}
+                  versions={selection.currentPrompt.versions}
+                  settings={workbench.settings}
                   feedback={editor.feedback}
                   variables={extractVariables(selection.currentVersion.content)}
                   variableValues={testing.promptVariables}
-                  metrics={testing.metrics}
-                  isExecuting={aiApi.isExecuting}
                   isGenerating={aiApi.isGenerating}
                   nextVersion={getVersionNumber(selection.currentPrompt.versions)}
-                  onInputChange={testing.setTestInput}
+                  onUpdateSlot={testing.updateSlot}
+                  onAddSlot={testing.addSlot}
+                  onRemoveSlot={testing.removeSlot}
+                  onExecuteSlot={(slotId) => testing.handleExecuteSlot(slotId, selection.currentPrompt!.versions, selection.selectedProject, selection.selectedPrompt)}
                   onFeedbackChange={editor.setFeedback}
                   onVariablesChange={testing.setPromptVariables}
-                  onExecute={() => testing.handleExecutePrompt(selection.currentVersion, selection.selectedProject, selection.selectedPrompt)}
                   onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testOutput)}
                 />
               )}
