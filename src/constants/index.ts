@@ -9,7 +9,13 @@ export const DEFAULT_SYSTEM_PROMPTS: SystemPrompts = {
 
 Use case: {{description}}
 
-Return ONLY the prompt, without explanations or markdown. The prompt should be clear, specific, and follow prompt engineering best practices.`,
+Important guidelines:
+- The generated prompt MUST be written in the same language as the use case description provided by the user
+- If the use case is in Spanish, generate the prompt in Spanish; if in English, generate in English; and so on
+- Only use a different language if the user explicitly requests it in their description
+- The prompt should be clear, specific, and follow prompt engineering best practices
+
+Return ONLY the prompt, without explanations or markdown.`,
 
   improvePrompt: `I have this system prompt:
 
@@ -17,9 +23,15 @@ Return ONLY the prompt, without explanations or markdown. The prompt should be c
 {{currentPrompt}}
 \`\`\`
 
-{{context}} User feedback: {{feedback}}
+{{context}}User feedback: {{feedback}}
 
-Generate an improved version of the prompt incorporating the feedback. Return ONLY the improved prompt, without explanations or markdown.`,
+Important guidelines:
+- The improved prompt MUST maintain the same language as the original prompt
+- If the original prompt is in Spanish, keep it in Spanish; if in English, keep it in English
+- Only change the language if the user explicitly requests it in their feedback
+- Incorporate the feedback while preserving the prompt's intent and structure
+
+Generate an improved version of the prompt. Return ONLY the improved prompt, without explanations or markdown.`,
 };
 
 /**

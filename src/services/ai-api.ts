@@ -255,13 +255,7 @@ export const aiApi = {
    * Generate a prompt from description
    */
   async generatePrompt(description: string, settings: Settings): Promise<string> {
-    const promptTemplate = settings.systemPrompts?.generatePrompt || 
-      `Generate a professional and effective system prompt for the following use case.
-
-Use case: {{description}}
-
-Return ONLY the prompt, without explanations or markdown. The prompt should be clear, specific, and follow prompt engineering best practices.`;
-
+    const promptTemplate = settings.systemPrompts.generatePrompt;
     const content = this.replaceTemplateVars(promptTemplate, { description });
 
     const result = await this.sendMessage(
@@ -293,17 +287,7 @@ Return ONLY the prompt, without explanations or markdown. The prompt should be c
       contextSection += `Generated output:\n\`\`\`\n${lastOutput}\n\`\`\`\n\n`;
     }
 
-    const promptTemplate = settings.systemPrompts?.improvePrompt ||
-      `I have this system prompt:
-
-\`\`\`
-{{currentPrompt}}
-\`\`\`
-
-{{context}} User feedback: {{feedback}}
-
-Generate an improved version of the prompt incorporating the feedback. Return ONLY the improved prompt, without explanations or markdown.`;
-
+    const promptTemplate = settings.systemPrompts.improvePrompt;
     const content = this.replaceTemplateVars(promptTemplate, {
       currentPrompt: currentContent,
       context: contextSection,
