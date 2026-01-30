@@ -186,9 +186,10 @@ export default function App() {
                   onContentChange={(content) => editor.handleContentChange(content, selection.selectedProject, selection.selectedPrompt)}
                   onContentBlur={editor.handleContentBlur}
                   onFeedbackChange={editor.setFeedback}
-                  onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testOutput)}
+                  onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testInput, testing.testOutput)}
                   onGenerateFromDescription={(desc) => editor.handleGenerateFromDescription(desc, selection.selectedProject, selection.selectedPrompt)}
                   onSaveVersion={(note) => editor.handleSaveVersion(note, selection.selectedProject, selection.selectedPrompt)}
+                  onOpenSystemPrompts={modals.openSystemPromptsSettings}
                 />
               )}
 
@@ -198,6 +199,7 @@ export default function App() {
                   versions={selection.currentPrompt.versions}
                   settings={workbench.settings}
                   feedback={editor.feedback}
+                  feedbackOptions={editor.feedbackOptions}
                   variables={extractVariables(selection.currentVersion.content)}
                   variableValues={testing.promptVariables}
                   isGenerating={aiApi.isGenerating}
@@ -207,8 +209,10 @@ export default function App() {
                   onRemoveSlot={testing.removeSlot}
                   onExecuteSlot={(slotId) => testing.handleExecuteSlot(slotId, selection.currentPrompt!.versions, selection.selectedProject, selection.selectedPrompt)}
                   onFeedbackChange={editor.setFeedback}
+                  onFeedbackOptionsChange={editor.updateFeedbackOptions}
                   onVariablesChange={testing.setPromptVariables}
-                  onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testOutput)}
+                  onGenerateFromFeedback={() => editor.handleGenerateFromFeedback(selection.selectedProject, selection.selectedPrompt, testing.testInput, testing.testOutput)}
+                  onOpenSystemPrompts={modals.openSystemPromptsSettings}
                 />
               )}
 
@@ -270,6 +274,7 @@ export default function App() {
         onProviderChange={aiApi.handleProviderChange}
         onApiKeyChange={aiApi.handleApiKeyChange}
         onModelChange={aiApi.handleModelChange}
+        openToSystemPrompts={modals.openSettingsToSystemPrompts}
       />
 
       <ConfirmModal

@@ -54,10 +54,16 @@ export interface ProviderSettings {
   model: string;
 }
 
+export interface SystemPrompts {
+  generatePrompt: string;
+  improvePrompt: string;
+}
+
 export interface Settings {
   provider: Provider;
   providers: Record<Provider, ProviderSettings>;
   temperature: number;
+  systemPrompts: SystemPrompts;
 }
 
 export interface ModelInfo {

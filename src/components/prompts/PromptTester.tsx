@@ -1,23 +1,31 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Sparkles, Zap, Clock, Copy, Check, FileText, Code, Plus, X, ChevronDown, MessageSquare } from 'lucide-react';
+import { Play, Sparkles, Zap, Clock, Copy, Check, FileText, Code, Plus, X, ChevronDown, MessageSquare, Settings as SettingsIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button, MarkdownRenderer } from '../ui';
 import { VariablesPanel } from './VariablesPanel';
 import { PROVIDERS, getModelsForProvider } from '../../constants';
 import type { Version, TestSlot, Provider, Settings } from '../../types';
 
+export interface FeedbackOptions {
+  includeInput: boolean;
+  includeOutput: boolean;
+}
+
 interface TestSlotRowProps {
   slot: TestSlot;
   versions: Version[];
   settings: Settings;
   feedback: string;
+  feedbackOptions: FeedbackOptions;
   isGenerating: boolean;
   nextVersion: string;
   onUpdate: (updates: Partial<TestSlot>) => void;
   onExecute: () => void;
   onRemove: () => void;
   onFeedbackChange: (feedback: string) => void;
+  onFeedbackOptionsChange: (options: Partial<FeedbackOptions>) => void;
   onGenerateFromFeedback: () => void;
+  onOpenSystemPrompts: () => void;
   slotIndex: number;
 }
 
@@ -26,13 +34,16 @@ function TestSlotRow({
   versions,
   settings,
   feedback,
+  feedbackOptions,
   isGenerating,
   nextVersion,
   onUpdate,
   onExecute,
   onRemove,
   onFeedbackChange,
+  onFeedbackOptionsChange,
   onGenerateFromFeedback,
+  onOpenSystemPrompts,
   slotIndex,
 }: TestSlotRowProps) {
   const { t } = useTranslation();
@@ -397,7 +408,7 @@ function TestSlotRow({
           {slot.output && isLatestVersion && (
             <div>
               {!showFeedback ? (
-                <div className="flex justify-end">
+                <div className="flex justify-end items-center gap-3">
                   <button
                     onClick={() => setShowFeedback(true)}
                     className="flex items-center gap-2 text-sm text-gray-400 hover:text-purple-400 transition-colors"
@@ -405,11 +416,27 @@ function TestSlotRow({
                     <MessageSquare className="w-4 h-4" />
                     <span>{t('editor.feedbackForNewVersion')}</span>
                   </button>
+                  <button
+                    onClick={onOpenSystemPrompts}
+                    className="p-1 text-white/70 hover:text-white transition-colors"
+                    title={t('settings.systemPrompts')}
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                  </button>
                 </div>
-              ) : (
+              )               : (
                 <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">{t('editor.feedback')}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium">{t('editor.feedback')}</h4>
+                      <button
+                        onClick={onOpenSystemPrompts}
+                        className="p-1 text-white/70 hover:text-white transition-colors"
+                        title={t('settings.systemPrompts')}
+                      >
+                        <SettingsIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                     <button
                       onClick={() => setShowFeedback(false)}
                       className="p-1 text-gray-500 hover:text-white transition-colors"
@@ -424,13 +451,32 @@ function TestSlotRow({
                     placeholder={t('editor.feedbackPlaceholder')}
                     autoFocus
                   />
+                  <div className="flex items-center gap-4 mt-2 mb-2">
+                    <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={feedbackOptions.includeInput}
+                        onChange={(e) => onFeedbackOptionsChange({ includeInput: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-600 bg-gray-900 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                      />
+                      {t('editor.includeInput')}
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={feedbackOptions.includeOutput}
+                        onChange={(e) => onFeedbackOptionsChange({ includeOutput: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-600 bg-gray-900 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                      />
+                      {t('editor.includeOutput')}
+                    </label>
+                  </div>
                   <Button
                     onClick={onGenerateFromFeedback}
                     disabled={isGenerating || !feedback.trim()}
                     loading={isGenerating}
                     icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
                     size="sm"
-                    className="mt-2"
                   >
                     {t('editor.generateVersion', { version: nextVersion })}
                   </Button>
@@ -453,6 +499,7 @@ interface PromptTesterProps {
   versions: Version[];
   settings: Settings;
   feedback: string;
+  feedbackOptions: FeedbackOptions;
   variables: string[];
   variableValues: Record<string, string>;
   isGenerating: boolean;
@@ -462,8 +509,10 @@ interface PromptTesterProps {
   onRemoveSlot: (slotId: string) => void;
   onExecuteSlot: (slotId: string) => void;
   onFeedbackChange: (feedback: string) => void;
+  onFeedbackOptionsChange: (options: Partial<FeedbackOptions>) => void;
   onVariablesChange: (values: Record<string, string>) => void;
   onGenerateFromFeedback: () => void;
+  onOpenSystemPrompts: () => void;
 }
 
 export function PromptTester({
@@ -471,6 +520,7 @@ export function PromptTester({
   versions,
   settings,
   feedback,
+  feedbackOptions,
   variables,
   variableValues,
   isGenerating,
@@ -480,8 +530,10 @@ export function PromptTester({
   onRemoveSlot,
   onExecuteSlot,
   onFeedbackChange,
+  onFeedbackOptionsChange,
   onVariablesChange,
   onGenerateFromFeedback,
+  onOpenSystemPrompts,
 }: PromptTesterProps) {
   const { t } = useTranslation();
 
@@ -502,13 +554,16 @@ export function PromptTester({
           versions={versions}
           settings={settings}
           feedback={feedback}
+          feedbackOptions={feedbackOptions}
           isGenerating={isGenerating}
           nextVersion={nextVersion}
           onUpdate={(updates) => onUpdateSlot(slot.id, updates)}
           onExecute={() => onExecuteSlot(slot.id)}
           onRemove={() => onRemoveSlot(slot.id)}
           onFeedbackChange={onFeedbackChange}
+          onFeedbackOptionsChange={onFeedbackOptionsChange}
           onGenerateFromFeedback={onGenerateFromFeedback}
+          onOpenSystemPrompts={onOpenSystemPrompts}
           slotIndex={index}
         />
       ))}

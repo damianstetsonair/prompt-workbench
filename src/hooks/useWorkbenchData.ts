@@ -31,7 +31,20 @@ export function useWorkbenchData() {
 
         const savedSettings = storage.getSettings();
         if (savedSettings) {
-          setSettings(savedSettings);
+          // Merge with defaults to ensure all fields exist (backwards compatibility)
+          const mergedSettings: Settings = {
+            ...DEFAULT_SETTINGS,
+            ...savedSettings,
+            providers: {
+              ...DEFAULT_SETTINGS.providers,
+              ...savedSettings.providers,
+            },
+            systemPrompts: {
+              ...DEFAULT_SETTINGS.systemPrompts,
+              ...savedSettings.systemPrompts,
+            },
+          };
+          setSettings(mergedSettings);
         }
       } catch (error) {
         console.error('Error loading data:', error);

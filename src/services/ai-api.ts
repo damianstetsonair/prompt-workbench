@@ -29,7 +29,7 @@ export const aiApi = {
     const providerSettings = settings.providers[settings.provider];
     
     if (!providerSettings.apiKey) {
-      throw new Error('API key no configurada');
+      throw new Error('API key not configured');
     }
 
     const startTime = Date.now();
@@ -46,7 +46,7 @@ export const aiApi = {
         result = await this.callGemini(messages, settings, systemPrompt);
         break;
       default:
-        throw new Error(`Proveedor no soportado: ${settings.provider}`);
+        throw new Error(`Unsupported provider: ${settings.provider}`);
     }
 
     result.responseTime = Date.now() - startTime;
@@ -95,7 +95,7 @@ export const aiApi = {
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.error.message || 'Error de API de Anthropic');
+      throw new Error(data.error.message || 'Anthropic API error');
     }
 
     return {
@@ -148,7 +148,7 @@ export const aiApi = {
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.error.message || 'Error de API de OpenAI');
+      throw new Error(data.error.message || 'OpenAI API error');
     }
 
     return {
@@ -207,7 +207,7 @@ export const aiApi = {
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.error.message || 'Error de API de Gemini');
+      throw new Error(data.error.message || 'Gemini API error');
     }
 
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -241,20 +241,31 @@ export const aiApi = {
   },
 
   /**
+   * Replace template variables in a string
+   */
+  replaceTemplateVars(template: string, vars: Record<string, string>): string {
+    let result = template;
+    for (const [key, value] of Object.entries(vars)) {
+      result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+    }
+    return result;
+  },
+
+  /**
    * Generate a prompt from description
    */
   async generatePrompt(description: string, settings: Settings): Promise<string> {
-    const result = await this.sendMessage(
-      [
-        {
-          role: 'user',
-          content: `Genera un prompt de sistema profesional y efectivo para el siguiente caso de uso. 
-              
-Caso de uso: ${description}
+    const promptTemplate = settings.systemPrompts?.generatePrompt || 
+      `Generate a professional and effective system prompt for the following use case.
 
-Devuelve SOLO el prompt, sin explicaciones ni markdown. El prompt debe ser claro, específico y seguir mejores prácticas de prompt engineering.`,
-        },
-      ],
+Use case: {{description}}
+
+Return ONLY the prompt, without explanations or markdown. The prompt should be clear, specific, and follow prompt engineering best practices.`;
+
+    const content = this.replaceTemplateVars(promptTemplate, { description });
+
+    const result = await this.sendMessage(
+      [{ role: 'user', content }],
       settings
     );
 
@@ -268,26 +279,39 @@ Devuelve SOLO el prompt, sin explicaciones ni markdown. El prompt debe ser claro
   async improvePrompt(
     currentContent: string,
     feedback: string,
+    lastInput: string | null,
     lastOutput: string | null,
     settings: Settings
   ): Promise<string> {
+    let contextSection = '';
+    
+    if (lastInput) {
+      contextSection += `Test input:\n\`\`\`\n${lastInput}\n\`\`\`\n\n`;
+    }
+    
+    if (lastOutput) {
+      contextSection += `Generated output:\n\`\`\`\n${lastOutput}\n\`\`\`\n\n`;
+    }
+
+    const promptTemplate = settings.systemPrompts?.improvePrompt ||
+      `I have this system prompt:
+
+\`\`\`
+{{currentPrompt}}
+\`\`\`
+
+{{context}} User feedback: {{feedback}}
+
+Generate an improved version of the prompt incorporating the feedback. Return ONLY the improved prompt, without explanations or markdown.`;
+
+    const content = this.replaceTemplateVars(promptTemplate, {
+      currentPrompt: currentContent,
+      context: contextSection,
+      feedback: feedback,
+    });
+
     const result = await this.sendMessage(
-      [
-        {
-          role: 'user',
-          content: `Tengo este prompt de sistema:
-
-\`\`\`
-${currentContent}
-\`\`\`
-
-${lastOutput ? `Último output generado:\n\`\`\`\n${lastOutput}\n\`\`\`\n` : ''}
-
-Feedback del usuario: ${feedback}
-
-Genera una versión mejorada del prompt incorporando el feedback. Devuelve SOLO el prompt mejorado, sin explicaciones ni markdown.`,
-        },
-      ],
+      [{ role: 'user', content }],
       settings
     );
 

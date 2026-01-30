@@ -2,6 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Version } from '../types';
 
+export interface FeedbackOptions {
+  includeInput: boolean;
+  includeOutput: boolean;
+}
+
 interface UsePromptEditorProps {
   currentVersion: Version | undefined;
   selectedPrompt: string | null;
@@ -9,7 +14,7 @@ interface UsePromptEditorProps {
   updateCurrentVersionContent: (projectId: string, promptId: string, content: string) => void;
   updatePromptContent: (projectId: string, promptId: string, content: string, note: string, forceNewVersion: boolean) => void;
   saveCurrentData: () => void;
-  improvePrompt: (content: string, feedback: string, lastOutput: string | null) => Promise<string | null>;
+  improvePrompt: (content: string, feedback: string, lastInput: string | null, lastOutput: string | null) => Promise<string | null>;
   generatePrompt: (description: string) => Promise<string | null>;
   showToast: (message: string) => void;
   currentProviderName: string;
@@ -29,6 +34,10 @@ export function usePromptEditor({
 }: UsePromptEditorProps) {
   const { t } = useTranslation();
   const [feedback, setFeedback] = useState('');
+  const [feedbackOptions, setFeedbackOptions] = useState<FeedbackOptions>({
+    includeInput: false,
+    includeOutput: true,
+  });
   const [originalContent, setOriginalContent] = useState<string>('');
 
   // Track original content when prompt changes (to detect unsaved changes)
@@ -71,14 +80,22 @@ export function usePromptEditor({
     showToast(t('toast.versionSaved'));
   }, [currentVersion, updatePromptContent, showToast, t]);
 
+  const updateFeedbackOptions = useCallback((options: Partial<FeedbackOptions>) => {
+    setFeedbackOptions(prev => ({ ...prev, ...options }));
+  }, []);
+
   const handleGenerateFromFeedback = useCallback(async (
     selectedProject: string | null,
     selectedPromptId: string | null,
+    testInput: string,
     testOutput: string
   ) => {
     if (!feedback.trim() || !currentVersion?.content || !selectedProject || !selectedPromptId) return;
 
-    const newContent = await improvePrompt(currentVersion.content, feedback, testOutput || null);
+    const inputToSend = feedbackOptions.includeInput ? testInput : null;
+    const outputToSend = feedbackOptions.includeOutput ? testOutput : null;
+
+    const newContent = await improvePrompt(currentVersion.content, feedback, inputToSend, outputToSend);
 
     if (newContent) {
       updatePromptContent(
@@ -90,7 +107,7 @@ export function usePromptEditor({
       );
       setFeedback('');
     }
-  }, [feedback, currentVersion, improvePrompt, updatePromptContent]);
+  }, [feedback, feedbackOptions, currentVersion, improvePrompt, updatePromptContent]);
 
   const handleGenerateFromDescription = useCallback(async (
     description: string,
@@ -114,10 +131,12 @@ export function usePromptEditor({
   return {
     // State
     feedback,
+    feedbackOptions,
     originalContent,
     hasUnsavedChanges,
     // Actions
     setFeedback,
+    updateFeedbackOptions,
     handleContentChange,
     handleContentBlur,
     handleSaveVersion,

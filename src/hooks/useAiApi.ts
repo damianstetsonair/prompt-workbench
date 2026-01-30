@@ -151,6 +151,7 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
     async (
       currentContent: string,
       feedback: string,
+      lastInput: string | null,
       lastOutput: string | null
     ): Promise<string | null> => {
       if (!currentApiKey) {
@@ -165,6 +166,7 @@ export function useAiApi({ settings, onSettingsChange }: UseAiApiOptions) {
         const result = await aiApi.improvePrompt(
           currentContent,
           feedback,
+          lastInput,
           lastOutput,
           settings
         );

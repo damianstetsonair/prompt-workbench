@@ -1,4 +1,26 @@
-import type { Settings, ModelInfo, ProviderInfo, Provider } from '../types';
+import type { Settings, ModelInfo, ProviderInfo, Provider, SystemPrompts } from '../types';
+
+/**
+ * Default system prompts used by the application
+ * These can be customized in Settings
+ */
+export const DEFAULT_SYSTEM_PROMPTS: SystemPrompts = {
+  generatePrompt: `Generate a professional and effective system prompt for the following use case.
+
+Use case: {{description}}
+
+Return ONLY the prompt, without explanations or markdown. The prompt should be clear, specific, and follow prompt engineering best practices.`,
+
+  improvePrompt: `I have this system prompt:
+
+\`\`\`
+{{currentPrompt}}
+\`\`\`
+
+{{context}} User feedback: {{feedback}}
+
+Generate an improved version of the prompt incorporating the feedback. Return ONLY the improved prompt, without explanations or markdown.`,
+};
 
 /**
  * Default settings for the application
@@ -20,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
     },
   },
   temperature: 1,
+  systemPrompts: { ...DEFAULT_SYSTEM_PROMPTS },
 };
 
 /**

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { MessageSquare, Sparkles, X, GripVertical, Save, FileText, Edit3 } from 'lucide-react';
+import { MessageSquare, Sparkles, X, GripVertical, Save, FileText, Edit3, Settings as SettingsIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button, MarkdownRenderer, CodeEditor } from '../ui';
 
@@ -16,6 +16,7 @@ interface PromptEditorProps {
   onGenerateFromFeedback: () => void;
   onGenerateFromDescription: (description: string) => Promise<void>;
   onSaveVersion: (note: string) => void;
+  onOpenSystemPrompts: () => void;
 }
 
 export function PromptEditor({
@@ -31,6 +32,7 @@ export function PromptEditor({
   onGenerateFromFeedback,
   onGenerateFromDescription,
   onSaveVersion,
+  onOpenSystemPrompts,
 }: PromptEditorProps) {
   const { t } = useTranslation();
   const feedbackRef = useRef<HTMLTextAreaElement>(null);
@@ -447,9 +449,18 @@ export function PromptEditor({
       </div>
 
       <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
-        <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4" /> {t('editor.feedbackForNewVersion')}
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" /> {t('editor.feedbackForNewVersion')}
+          </h3>
+          <button
+            onClick={onOpenSystemPrompts}
+            className="p-1 text-white/70 hover:text-white transition-colors"
+            title={t('settings.systemPrompts')}
+          >
+            <SettingsIcon className="w-4 h-4" />
+          </button>
+        </div>
         <div className="relative">
           <textarea
             ref={feedbackRef}

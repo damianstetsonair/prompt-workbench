@@ -12,6 +12,7 @@ const INITIAL_CONFIRM_STATE: ConfirmModalState = {
 export function useModals() {
   const [showNewPromptModal, setShowNewPromptModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [openSettingsToSystemPrompts, setOpenSettingsToSystemPrompts] = useState(false);
   const [confirmModal, setConfirmModal] = useState<ConfirmModalState>(INITIAL_CONFIRM_STATE);
 
   const openNewPromptModal = useCallback(() => {
@@ -23,11 +24,18 @@ export function useModals() {
   }, []);
 
   const openSettingsModal = useCallback(() => {
+    setOpenSettingsToSystemPrompts(false);
+    setShowSettingsModal(true);
+  }, []);
+
+  const openSystemPromptsSettings = useCallback(() => {
+    setOpenSettingsToSystemPrompts(true);
     setShowSettingsModal(true);
   }, []);
 
   const closeSettingsModal = useCallback(() => {
     setShowSettingsModal(false);
+    setOpenSettingsToSystemPrompts(false);
   }, []);
 
   const closeConfirmModal = useCallback(() => {
@@ -73,11 +81,13 @@ export function useModals() {
     // State
     showNewPromptModal,
     showSettingsModal,
+    openSettingsToSystemPrompts,
     confirmModal,
     // Actions
     openNewPromptModal,
     closeNewPromptModal,
     openSettingsModal,
+    openSystemPromptsSettings,
     closeSettingsModal,
     closeConfirmModal,
     openDeleteProjectModal,

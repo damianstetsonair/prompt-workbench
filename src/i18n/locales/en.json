@@ -39,7 +39,9 @@
     "close": "Close",
     "edit": "Edit",
     "preview": "Preview",
-    "feedbackForNewVersion": "Give feedback for new version"
+    "feedbackForNewVersion": "Give feedback for new version",
+    "includeInput": "Include input",
+    "includeOutput": "Include output"
   },
   "tester": {
     "version": "Version",
@@ -93,7 +95,17 @@
     "model": "Model",
     "language": "Language",
     "save": "Save",
-    "getKey": "Get key"
+    "getKey": "Get key",
+    "systemPrompts": "System Prompts",
+    "systemPromptsHint": "Customize the prompts used by the application. Use {{variable}} for dynamic values.",
+    "generatePromptLabel": "Generate Prompt",
+    "generatePromptHint": "Used when generating a new prompt from a description. Variable: {{description}}",
+    "improvePromptLabel": "Improve Prompt (Feedback)",
+    "improvePromptHint": "Used when improving a prompt based on feedback. Variables: {{currentPrompt}}, {{context}}, {{feedback}}",
+    "reset": "Reset",
+    "resetAll": "Reset all prompts",
+    "confirmReset": "Are you sure you want to reset this prompt to its default value?",
+    "confirmResetAll": "Are you sure you want to reset all prompts to their default values?"
   },
   "modals": {
     "newPrompt": {
