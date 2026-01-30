@@ -129,3 +129,49 @@ export const API_CONFIG = {
   },
   maxTokens: 4000,
 } as const;
+
+/**
+ * Changelog entries
+ */
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  changes: string[];
+}
+
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.2.0',
+    date: '2026-01-30',
+    changes: [
+      'Added customizable system prompts in Settings',
+      'Added option to include input/output when sending feedback',
+      'Added quick access to system prompts from feedback sections',
+      'Added changelog viewer',
+    ],
+  },
+  {
+    version: '1.1.0',
+    date: '2026-01-25',
+    changes: [
+      'Added multi-provider support (Anthropic, OpenAI, Gemini)',
+      'Added per-test provider and model override',
+      'Added multiple test slots for comparing versions',
+      'Added version comparison with diff view',
+      'Added drag & drop to move prompts between projects',
+    ],
+  },
+  {
+    version: '1.0.0',
+    date: '2026-01-15',
+    changes: [
+      'Initial release',
+      'Prompt editor with syntax highlighting',
+      'Version history with rollback',
+      'Test execution with metrics',
+      'Variable extraction and replacement',
+      'Multi-language support (EN, ES, FR)',
+      'Import/Export functionality',
+    ],
+  },
+];

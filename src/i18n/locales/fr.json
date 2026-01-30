@@ -8,10 +8,14 @@
     "export": "Exporter",
     "import": "Importer",
     "settings": "Paramètres",
+    "changelog": "Changements",
     "newPrompt": "Nouveau prompt",
     "downloadZip": "Télécharger les prompts en ZIP",
     "renameProject": "Renommer le projet",
     "deleteProject": "Supprimer le projet"
+  },
+  "changelog": {
+    "title": "Journal des modifications"
   },
   "header": {
     "edit": "Éditer",

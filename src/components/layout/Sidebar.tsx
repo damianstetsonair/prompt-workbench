@@ -13,7 +13,9 @@ import {
   Trash2,
   FileText,
   GripVertical,
+  History,
 } from 'lucide-react';
+import { ChangelogModal } from '../modals';
 import type { WorkbenchData, EditingState, DraggedPromptState } from '../../types';
 
 interface SidebarProps {
@@ -66,6 +68,7 @@ export function Sidebar({
   const [tempName, setTempName] = useState('');
   const [draggedPrompt, setDraggedPrompt] = useState<DraggedPromptState | null>(null);
   const [dragOverProject, setDragOverProject] = useState<string | null>(null);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const handleStartEdit = (type: 'project' | 'prompt', id: string, currentName: string) => {
     setEditingName({ type, id });
@@ -297,9 +300,20 @@ export function Sidebar({
           <Settings className="w-4 h-4" /> {t('sidebar.settings')}
           {!hasApiKey && <span className="ml-auto text-xs text-yellow-500">⚠️</span>}
         </button>
+        <button
+          onClick={() => setShowChangelog(true)}
+          className="flex items-center gap-2 p-2 text-sm hover:bg-gray-800 rounded w-full text-gray-400"
+        >
+          <History className="w-4 h-4" /> {t('sidebar.changelog')}
+        </button>
       </div>
 
       {saving && <div className="p-2 text-xs text-center text-gray-500">...</div>}
+
+      <ChangelogModal
+        isOpen={showChangelog}
+        onClose={() => setShowChangelog(false)}
+      />
     </div>
   );
 }
